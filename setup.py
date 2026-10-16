@@ -9,6 +9,11 @@ setup(
     long_description="Package for protecting Instagram accounts: hiding posts, monitoring followers/following, detecting suspicious activity",
     long_description_content_type="text/markdown",
     url="https://github.com/pymite6941/social-safe",
+    project_urls={
+        "Bug Tracker": "https://github.com/pymite6941/social-safe/issues",
+        "Documentation": "https://github.com/pymite6941/social-safe#readme",
+        "Source Code": "https://github.com/pymite6941/social-safe",
+    },
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",

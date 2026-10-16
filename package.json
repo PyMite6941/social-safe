@@ -17,6 +17,11 @@
   ],
   "author": "pymite6941",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pymite6941/social-safe.git"
+  },
+  "homepage": "https://github.com/pymite6941/social-safe#readme",
   "dependencies": {
     "which": "^2.0.2"
   }

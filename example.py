@@ -27,11 +27,20 @@ def main():
             alert_email=alert_email
         )
         
-        if any(changes.values()):
+        # Check if there are any changes worth reporting
+        has_changes = False
+        for change_type, value in changes.items():
+            if change_type == "privacy_changed":
+                if value:  # True means privacy changed
+                    has_changes = True
+                    print(f"  {change_type}: {value} (expected privacy setting changed)")
+            else:  # It's a set of strings
+                if value:  # non-empty set
+                    has_changes = True
+                    print(f"  {change_type}: {len(value)} accounts")
+        
+        if has_changes:
             print("Changes detected and alert sent!")
-            for change_type, accounts in changes.items():
-                if accounts:
-                    print(f"  {change_type}: {len(accounts)} accounts")
         else:
             print("No changes detected since last check")
             
