@@ -5,113 +5,364 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>social-safe - Instagram Privacy Protection</title>
     <style>
+        :root {
+            --primary: #6a11cb;
+            --primary-dark: #5a0db2;
+            --secondary: #2575fc;
+            --light: #f8f9fa;
+            --dark: #2c3e50;
+            --gray: #6c757d;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.7;
+            color: var(--dark);
             background-color: #fafafa;
         }
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
         header {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
-            padding: 2rem;
+            padding: 3rem 2rem;
             text-align: center;
-            border-radius: 10px;
-            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 20%);
+            animation: spin 20s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .logo {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+            font-size: 2rem;
         }
         h1 {
-            margin: 0;
-            font-size: 2.5rem;
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
         }
         .tagline {
-            margin-top: 0.5rem;
+            font-size: 1.3rem;
             opacity: 0.9;
-            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        nav {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 1rem;
+        }
+        nav ul {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            list-style: none;
+        }
+        nav a {
+            color: white;
+            font-weight: 500;
+            padding: 0.5rem 0;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.3s;
+        }
+        nav a:hover {
+            border-color: white;
         }
         section {
             background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
+            margin: 2rem auto;
+            max-width: 960px;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
         h2 {
-            color: #2c3e50;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 0.5rem;
+            color: var(--dark);
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        h2::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
         }
         .features {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
         }
         .feature {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 8px;
-            border-left: 4px solid #6a11cb;
+            background: var(--light);
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #eee;
+        }
+        .feature:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
         }
         .feature h3 {
-            margin-top: 0;
-            color: #6a11cb;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        .installation {
-            background: #e8f4fd;
+        .feature p {
+            color: var(--gray);
+        }
+        .installation, .usage {
+            background: #f0f8ff;
+            border-left: 4px solid var(--primary);
             padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .usage {
+            background: #fff8f0;
+            border-left-color: var(--secondary);
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 1.25rem;
             border-radius: 8px;
-            font-family: 'Courier New', Courier, monospace;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            border: 1px solid #eee;
         }
         code {
             background: #f1f3f4;
             padding: 0.2rem 0.4rem;
             border-radius: 4px;
-        }
-        pre {
-            background: #f1f3f4;
-            padding: 1rem;
-            border-radius: 8px;
-            overflow-x: auto;
-        }
-        footer {
-            text-align: center;
-            margin-top: 3rem;
-            color: #666;
-            font-size: 0.9rem;
+            font-family: 'Courier New', Courier, monospace;
         }
         .btn {
             display: inline-block;
-            background: #6a11cb;
+            background: var(--primary);
             color: white;
             padding: 0.75rem 1.5rem;
-            text-decoration: none;
             border-radius: 6px;
-            margin: 1rem 0.5rem 0 0;
-            font-weight: 500;
-            transition: background 0.3s;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            font-size: 0.95rem;
         }
         .btn:hover {
-            background: #5a0db2;
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(106, 17, 203, 0.4);
         }
         .btn-secondary {
-            background: #95a5a6;
+            background: var(--gray);
+            color: white;
         }
         .btn-secondary:hover {
-            background: #7f8c8d;
+            background: #5a6268;
+        }
+        .btn-outline {
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+        }
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .step {
+            background: var(--light);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid #eee;
+            position: relative;
+        }
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .step h3 {
+            color: var(--primary);
+            margin: 1.5rem 0 0.5rem;
+        }
+        .step p {
+            color: var(--gray);
+            font-size: 0.94rem;
+        }
+        .env-vars {
+            background: var(--light);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .env-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .env-table th,
+        .env-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .env-table th {
+            background: #f1f3f4;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        .env-table tr:hover {
+            background: #f8f9fa;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .footer {
+            text-align: center;
+            padding: 2.5rem;
+            color: var(--gray);
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            margin-top: 3rem;
+        }
+        .footer a {
+            color: var(--primary);
+            margin: 0 0.5rem;
+        }
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            .tagline {
+                font-size: 1.1rem;
+            }
+            nav ul {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: center;
+            }
+            .steps {
+                grid-template-columns: 1fr;
+            }
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .copy-btn:hover {
+            opacity: 1;
+        }
+        .code-wrapper {
+            position: relative;
         }
     </style>
 </head>
 <body>
     <header>
+        <div class="logo">🔒</div>
         <h1>social-safe</h1>
         <p class="tagline">Instagram privacy protection and monitoring tools</p>
     </header>
+    
+    <nav>
+        <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="#usage">Usage</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#faq">FAQ</a></li>
+        </ul>
+    </nav>
 
-    <section>
-        <h2>Overview</h2>
+    <section id="overview">
+        <h2><span>🛡️</span> Overview</h2>
         <p>
             social-safe is a Python package (with Node.js wrapper) that helps you monitor and protect your Instagram account
             by detecting suspicious follower/following changes, auditing new followers for risky characteristics,
@@ -121,90 +372,300 @@
             Unlike native Instagram controls, social-safe provides active monitoring and auditing capabilities that
             work continuously to keep you informed about your account's safety.
         </p>
+        <div style="text-align: center; margin: 2rem 0;">
+            <a href="#installation" class="btn">Get Started</a>
+            <a href="https://github.com/PyMite6941/social-safe" class="btn btn-outline">View on GitHub</a>
+        </div>
     </section>
 
-    <section>
-        <h2>Key Features</h2>
+    <section id="features">
+        <h2><span>✨</span> Key Features</h2>
         <div class="features">
             <div class="feature">
-                <h3>🔍 Follower/Following Monitoring</h3>
-                <p>Detects new followers, lost followers, new follows, and unfollows since last check.</p>
+                <div class="feature-icon">🔍</div>
+                <h3>Follower/Following Monitoring</h3>
+                <p>Detects new followers, lost followers, new follows, and unfollows since last check with customizable thresholds.</p>
             </div>
             <div class="feature">
-                <h3>🛡️ Privacy Setting Alerts</h3>
+                <div class="feature-icon">🛡️</div>
+                <h3>Privacy Setting Alerts</h3>
                 <p>Gets notified if your account accidentally switches from private to public (or vice versa).</p>
             </div>
             <div class="feature">
-                <h3>🕵️‍♂️ Privacy Audit</h3>
+                <div class="feature-icon">🕵️‍♂️</div>
+                <h3>Privacy Audit</h3>
                 <p>Scans new followers for risky characteristics: zero posts, zero followers, high following/follower ratio.</p>
             </div>
             <div class="feature">
-                <h3>📧 Email Alerts</h3>
+                <div class="feature-icon">📧</div>
+                <h3>Email Alerts</h3>
                 <p>Sends detailed email alerts when thresholds are exceeded or risks are detected.</p>
             </div>
             <div class="feature">
-                <h3>⚙️ Highly Customizable</h3>
+                <div class="feature-icon">⚙️</div>
+                <h3>Highly Customizable</h3>
                 <p>Configure everything via environment variables: thresholds, monitored items, audit checks, etc.</p>
             </div>
             <div class="feature">
-                <h3>🔐 Secure by Design</h3>
+                <div class="feature-icon">🔐</div>
+                <h3>Secure by Design</h3>
                 <p>Never stores passwords; uses environment variables and app-specific passwords only.</p>
             </div>
         </div>
     </section>
 
-    <section>
-        <h2>Installation</h2>
+    <section id="installation">
+        <h2><span>📦</span> Installation</h2>
         <div class="installation">
-            <p>From GitHub (recommended):</p>
-            <pre><code>pip install git+https://github.com/PyMite6941/social-safe.git</code></pre>
+            <h3>From GitHub (Recommended)</h3>
+            <div class="code-wrapper">
+                <pre><code>pip install git+https://github.com/PyMite6941/social-safe.git</code></pre>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
             <p>Or for development:</p>
-            <pre><code>git clone https://github.com/PyMite6941/social-safe.git
+            <div class="code-wrapper">
+                <pre><code>git clone https://github.com/PyMite6941/social-safe.git
 cd social-safe
 pip install -e .</code></pre>
-            <p>Node.js wrapper (requires Python package above):</p>
-            <pre><code>npm install -g socialsafe-wrapper</code></pre>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+        </div>
+        <div class="usage">
+            <h3>Node.js Wrapper (Optional)</h3>
+            <p>Provides a <code>socialsafe</code> command that wraps the Python package.</p>
+            <div class="code-wrapper">
+                <pre><code>npm install -g socialsafe-wrapper</code></pre>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
+            <p><small>Requires the Python package to be installed first.</small></p>
         </div>
     </section>
 
-    <section>
-        <h2>Usage</h2>
+    <section id="usage">
+        <h2><span>▶️</span> Usage</h2>
         <p>Set environment variables (copy <code>.env.example</code> to <code>.env</code> and fill):</p>
-        <pre><code>export IG_USERNAME="your_instagram_handle"
+        <div class="code-wrapper">
+            <pre><code>export IG_USERNAME="your_instagram_handle"
 export IG_PASSWORD="your_app_specific_password"
 export ALERT_EMAIL="your_alert@example.com"
 export ALERT_APP_PASSWORD="your_smtp_app_password"</code></pre>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <div class="env-vars">
+            <h3>Environment Variables Reference</h3>
+            <table class="env-table">
+                <thead>
+                    <tr>
+                        <th>Variable</th>
+                        <th>Description</th>
+                        <th>Default</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>IG_USERNAME</code></td>
+                        <td>Your Instagram username (handle)</td>
+                        <td>Required</td>
+                    </tr>
+                    <tr>
+                        <td><code>IG_PASSWORD</code></td>
+                        <td>Instagram password (use app-specific password)</td>
+                        <td>Required</td>
+                    </tr>
+                    <tr>
+                        <td><code>ALERT_EMAIL</code></td>
+                        <td>Email address to send alerts to</td>
+                        <td>Required</td>
+                    </tr>
+                    <tr>
+                        <td><code>ALERT_APP_PASSWORD</code></td>
+                        <td>SMTP password for sending alerts (App Password)</td>
+                        <td>Required</td>
+                    </tr>
+                    <tr>
+                        <td><code>SMTP_SERVER</code></td>
+                        <td>SMTP server</td>
+                        <td>smtp.gmail.com</td>
+                    </tr>
+                    <tr>
+                        <td><code>SMTP_PORT</code></td>
+                        <td>SMTP port</td>
+                        <td>465</td>
+                    </tr>
+                    <tr>
+                        <td><code>EXPECTED_PRIVACY</code></td>
+                        <td>Expected account privacy ('private' or 'public')</td>
+                        <td>private</td>
+                    </tr>
+                    <tr>
+                        <td><code>MONITOR_FOLLOWERS</code></td>
+                        <td>Monitor followers? ('true' or 'false')</td>
+                        <td>true</td>
+                    </tr>
+                    <tr>
+                        <td><code>MONITOR_FOLLOWING</code></td>
+                        <td>Monitor following? ('true' or 'false')</td>
+                        <td>true</td>
+                    </tr>
+                    <tr>
+                        <td><code>ALERT_THRESHOLD_NEW_FOLLOWERS</code></td>
+                        <td>Alert if new followers exceed this number</td>
+                        <td>10</td>
+                    </tr>
+                    <tr>
+                        <td><code>ALERT_THRESHOLD_LOST_FOLLOWERS</code></td>
+                        <td>Alert if lost followers exceed this number</td>
+                        <td>10</td>
+                    </tr>
+                    <tr>
+                        <td><code>ALERT_THRESHOLD_NEW_FOLLOWING</code></td>
+                        <td>Alert if new follows exceed this number</td>
+                        <td>10</td>
+                    </tr>
+                    <tr>
+                        <td><code>ALERT_THRESHOLD_LOST_FOLLOWING</code></td>
+                        <td>Alert if lost follows exceed this number</td>
+                        <td>10</td>
+                    </tr>
+                    <tr>
+                        <td><code>STATE_FILE</code></td>
+                        <td>File to store previous state</td>
+                        <td>ig_state.json</td>
+                    </tr>
+                    <tr>
+                        <td><code>AUDIT_ENABLED</code></td>
+                        <td>Enable privacy audit (true/false)</td>
+                        <td>true</td>
+                    </tr>
+                    <tr>
+                        <td><code>AUDIT_RISK_ZERO_POSTS</code></td>
+                        <td>Flag new followers with zero posts</td>
+                        <td>true</td>
+                    </tr>
+                    <tr>
+                        <td><code>AUDIT_RISK_ZERO_FOLLOWERS</td>
+                        <td>Flag new followers with zero followers</td>
+                        <td>true</td>
+                    </tr>
+                    <tr>
+                        <td><code>AUDIT_RISK_HIGH_FOLLOWING_RATIO</code></td>
+                        <td>Flag new followers with high following/follower ratio</td>
+                        <td>true</td>
+                    </tr>
+                    <tr>
+                        <td><code>AUDIT_FOLLOWING_RATIO_THRESHOLD</code></td>
+                        <td>Following/Follower ratio above this is risky</td>
+                        <td>100</td>
+                    </tr>
+                    <tr>
+                        <td><code>AUDIT_MIN_FOLLOWERS_FOR_RATIO</code></td>
+                        <td>Minimum followers to apply ratio check</td>
+                        <td>10</td>
+                    </tr>
+                    <tr>
+                        <td><code>AUDIT_ALERT_THRESHOLD_RISKY</code></td>
+                        <td>Number of risky new followers that triggers an alert</td>
+                        <td>5</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         <p>Then run the monitor:</p>
-        <pre><code>socialsafe-monitor</code></pre>
+        <div class="code-wrapper">
+            <pre><code>socialsafe-monitor</code></pre>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
         <p>Or via the npm wrapper (if installed):</p>
-        <pre><code>socialsafe</code></pre>
+        <div class="code-wrapper">
+            <pre><code>socialsafe</code></pre>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </p>
+        <div style="text-align: center; margin: 2rem 0;">
+            <a href="https://github.com/PyMite6941/social-safe#readme" class="btn btn-secondary">Full Documentation</a>
+        </div>
     </section>
 
-    <section>
-        <h2>How It Works</h2>
-        <ol>
-            <li>Authenticates to Instagram using your credentials (via Instaloader)</li>
-            <li>Fetches your current follower and following lists</li>
-            <li>Compares against the previous run (stored in state file)</li>
-            <li>Checks if your account privacy setting matches expected value</li>
-            <li>Optionally audits new followers for risky characteristics</li>
-            <li>Sends email alerts if:
-                <ul>
-                    <li>Privacy setting changed unexpectedly</li>
-                    <li>New/lost followers or following exceed configured thresholds</li>
-                    <li>Number of risky new followers exceeds audit threshold</li>
-                </ul>
-            </li>
-            <li>Updates the state file for the next run</li>
-        </ol>
+    <section id="how-it-works">
+        <h2><span>⚙️</span> How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Authenticate</h3>
+                <p>Securely logs into Instagram using your credentials via Instaloader (read-only access).</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Fetch Data</h3>
+                <p>Retrieves your current follower and following lists.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Compare & Analyze</h3>
+                <p>Compares against previous run, checks privacy setting, and optionally audits new followers for risks.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <h3>Alert if Needed</h3>
+                <p>Sends email alerts when thresholds are exceeded, privacy changes, or risky followers detected.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">5</div>
+                <h3>Update State</h3>
+                <p>Updates the state file for efficient comparison in the next run.</p>
+            </div>
+        </div>
     </section>
 
-    <footer>
-        <p>&copy; 2026 pymite6941. Licensed under MIT.</p>
+    <section id="faq">
+        <h2><span>❓</span> Frequently Asked Questions</h2>
+        <div style="background: var(--light); border-radius: 10px; padding: 1.5rem;">
+            <h3>Is my Instagram password safe?</h3>
+            <p>Yes. Your password is only used to authenticate with Instagram via Instaloader and is never stored, logged, or transmitted elsewhere. We recommend using an app-specific password from Instagram's security settings.</p>
+            
+            <h3>Can this tool post or modify my account?</h3>
+            <p>No. social-safe is read-only. It only fetches your follower/following lists and account information. It does not post, message, follow, unfollow, or modify your account in any way.</p>
+            
+            <h3>What if I have many followers?</h3>
+            <p>The tool is efficient and only processes changes since the last run. Even accounts with hundreds of thousands of followers typically complete checks in seconds.</p>
+            
+            <h3>How often should I run it?</h3>
+            <p>For most users, running it once per hour via cron is sufficient. You can adjust frequency based on your needs.</p>
+            
+            <h3>Does it work with business or creator accounts?</h3>
+            <p>Yes. The tool works with any Instagram account type (personal, business, creator) as long as you have the login credentials.</p>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>&copy; 2026 pymite6941. Licensed under <a href="https://github.com/PyMite6941/social-safe/blob/main/LICENSE">MIT License</a>.</p>
         <p>
-            <a href="https://github.com/PyMite6941/social-safe" class="btn">View on GitHub</a>
-            <a href="https://github.com/PyMite6941/social-safe#readme" class="btn btn-secondary">Documentation</a>
+            <a href="https://github.com/PyMite6941/social-safe">GitHub Repository</a> |
+            <a href="https://github.com/PyMite6941/social-safe/issues">Report Issues</a> |
+            <a href="https://github.com/PyMite6941/social-safe/pulls">Contribute</a>
         </p>
     </footer>
+
+    <script>
+        function copyCode(button) {
+            const codeWrapper = button.parentElement;
+            const codeElement = codeWrapper.querySelector('code, pre');
+            if (!codeElement) return;
+            
+            const textToCopy = codeElement.textContent;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                button.textContent = 'Error';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+    </script>
 </body>
 </html>
