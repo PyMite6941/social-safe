@@ -1,0 +1,23 @@
+{
+  "name": "socialsafe-wrapper",
+  "version": "0.1.0",
+  "description": "Node.js wrapper for social-safe Python package - Instagram privacy monitoring",
+  "main": "cli.js",
+  "bin": {
+    "socialsafe": "./cli.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "instagram",
+    "privacy",
+    "monitoring",
+    "social-media"
+  ],
+  "author": "pymite6941",
+  "license": "MIT",
+  "dependencies": {
+    "which": "^2.0.2"
+  }
+}
