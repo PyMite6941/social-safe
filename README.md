@@ -4,13 +4,15 @@ Instagram privacy protection and monitoring tools.
 
 ## Features
 
-- Monitor follower/following changes
+- Monitor follower/following changes (Instagram and Twitter/X)
 - Get alerts for suspicious activity (via thresholds)
 - Check and alert on unexpected privacy setting changes
-- **Privacy audit of new followers for risky characteristics** (zero posts, zero followers, high following/follower ratio)
+- **Privacy audit of new followers/following for risky characteristics** (zero posts, zero followers, high following/follower ratio)
+- **Phishing detection** in posts and DMs (suspicious URLs, language patterns)
+- **AI social engineering risk evaluation** (via configurable AI model)
 - Highly customizable via environment variables or parameters
 - Easy-to-use Python package
-
+- Easy extension to other platforms
 ## Installation
 
 ```bash
