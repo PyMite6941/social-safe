@@ -28,6 +28,7 @@ setup(
     python_requires=">=3.8",
     install_requires=[
         "instaloader>=4.8.0",
+        "tweepy>=4.14.0",
     ],
     entry_points={
         "console_scripts": [
