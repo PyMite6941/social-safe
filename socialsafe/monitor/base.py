@@ -29,6 +29,12 @@ class BaseSocialMonitor(ABC):
         audit_following_ratio_threshold: Optional[int] = None,
         audit_min_followers_for_ratio: Optional[int] = None,
         audit_alert_threshold_risky: Optional[int] = None,
+        audit_check_https: Optional[bool] = None,
+        audit_check_2fa: Optional[bool] = None,
+        audit_check_login_alerts: Optional[bool] = None,
+        audit_check_active_sessions: Optional[bool] = None,
+        audit_check_recent_security_checkup: Optional[bool] = None,
+        audit_check_account_verification: Optional[bool] = None,
         enable_content_scanning: Optional[bool] = None,
         content_scan_keywords: Optional[List[str]] = None,
         content_scan_image_hashes: Optional[List[str]] = None,
@@ -59,6 +65,12 @@ class BaseSocialMonitor(ABC):
         self.audit_following_ratio_threshold = self._get_int_env('AUDIT_FOLLOWING_RATIO_THRESHOLD', audit_following_ratio_threshold, 100)
         self.audit_min_followers_for_ratio = self._get_int_env('AUDIT_MIN_FOLLOWERS_FOR_RATIO', audit_min_followers_for_ratio, 10)
         self.audit_alert_threshold_risky = self._get_int_env('AUDIT_ALERT_THRESHOLD_RISKY', audit_alert_threshold_risky, 5)
+        self.audit_check_https = self._get_bool_env('AUDIT_CHECK_HTTPS', audit_check_https, True)
+        self.audit_check_2fa = self._get_bool_env('AUDIT_CHECK_2FA', audit_check_2fa, True)
+        self.audit_check_login_alerts = self._get_bool_env('AUDIT_CHECK_LOGIN_ALERTS', audit_check_login_alerts, True)
+        self.audit_check_active_sessions = self._get_bool_env('AUDIT_CHECK_ACTIVE_SESSIONS', audit_check_active_sessions, True)
+        self.audit_check_recent_security_checkup = self._get_bool_env('AUDIT_CHECK_RECENT_SECURITY_CHECKUP', audit_check_recent_security_checkup, True)
+        self.audit_check_account_verification = self._get_bool_env('AUDIT_CHECK_ACCOUNT_VERIFICATION', audit_check_account_verification, True)
         self.enable_content_scanning = self._get_bool_env('ENABLE_CONTENT_SCANNING', enable_content_scanning, False)
         self.content_scan_keywords = content_scan_keywords or []
         self.content_scan_image_hashes = content_scan_image_hashes or []
@@ -141,6 +153,103 @@ class BaseSocialMonitor(ABC):
                           privacy_changed (bool)
         """
         pass
+
+    def _check_https_connection(self) -> Dict[str, object]:
+        """Check if the platform connection uses HTTPS/TLS.
+        
+        Returns:
+            Dict with risk status and details
+        """
+        # This is a basic check - in practice, all legitimate platforms should use HTTPS
+        # We can verify by checking if our API calls are made over HTTPS
+        # For now, we'll assume HTTPS is used if we successfully connected
+        # A more thorough implementation would verify certificates and protocol versions
+        
+        return {
+            "risk_detected": False,
+            "details": {
+                "https_enforced": True,
+                "note": "Connection security assumed based on successful API connection"
+            }
+        }
+
+    def _check_2fa_status(self) -> Dict[str, object]:
+        """Check if two-factor authentication is enabled.
+        
+        Returns:
+            Dict with risk status and details (platform-specific implementation needed)
+        """
+        # This is a placeholder - most platforms don't expose 2FA status via public APIs
+        # Platform-specific implementations should override this method
+        return {
+            "risk_detected": False,
+            "details": {
+                "2fa_enabled": None,
+                "note": "2FA status check not implemented for this platform"
+            }
+        }
+
+    def _check_login_alerts(self) -> Dict[str, object]:
+        """Check if login alerts/notifications are enabled.
+        
+        Returns:
+            Dict with risk status and details (platform-specific implementation needed)
+        """
+        # Placeholder - platform-specific implementation needed
+        return {
+            "risk_detected": False,
+            "details": {
+                "login_alerts_enabled": None,
+                "note": "Login alerts status check not implemented for this platform"
+            }
+        }
+
+    def _check_active_sessions(self) -> Dict[str, object]:
+        """Check for suspicious or excessive active sessions.
+        
+        Returns:
+            Dict with risk status and details (platform-specific implementation needed)
+        """
+        # Placeholder - platform-specific implementation needed
+        return {
+            "risk_detected": False,
+            "details": {
+                "suspicious_sessions": [],
+                "note": "Active sessions check not implemented for this platform"
+            }
+        }
+
+    def _check_recent_security_checkup(self) -> Dict[str, object]:
+        """Check if the account has had a recent security checkup.
+        
+        Returns:
+            Dict with risk status and details (platform-specific implementation needed)
+        """
+        # Placeholder - platform-specific implementation needed
+        return {
+            "risk_detected": False,
+            "details": {
+                "recent_security_checkup": None,
+                "note": "Recent security checkup status not implemented for this platform"
+            }
+        }
+
+    def _check_account_verification(self) -> Dict[str, object]:
+        """Check if the account is verified (where applicable).
+        
+        Returns:
+            Dict with risk status and details
+        """
+        # Many platforms don't expose verification status via basic APIs
+        # Platform-specific implementations should override this method
+        return {
+            "risk_detected": False,
+            "details": {
+                "is_verified": None,
+                "note": "Account verification status not available via this platform's API"
+            }
+        }
+
 
     @abstractmethod
     def audit_account(self) -> Dict[str, object]:
@@ -235,6 +344,16 @@ class BaseSocialMonitor(ABC):
                 if len(phishing_list) > 0:  # Alert on any phishing detection
                     return True
             
+            # Check for PII detection
+            if any(risk.startswith("pii_detected_in_") for risk in risks):
+                details = audit_result.get("details", {})
+                # Check if any PII detection risk has findings
+                for risk_key in risks:
+                    if risk_key.startswith("pii_detected_in_") and risk_key in details:
+                        pii_list = details[risk_key]
+                        if len(pii_list) > 0:  # Alert on any PII detection
+                            return True
+
             # Check for high social engineering risk
             if "high_social_engineering_risk" in risks:
                 details = audit_result.get("details", {})

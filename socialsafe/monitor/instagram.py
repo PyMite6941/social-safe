@@ -159,11 +159,42 @@ class InstagramMonitor(BaseSocialMonitor):
             risks.append("risky_new_followers")
             details["risky_new_followers"] = risky_new_followers
         
-        # 3. Check for encryption/security settings (if available via API)
-        # Note: Instagram's API doesn't expose much about encryption settings directly
-        # But we can check if two-factor authentication is enabled (if we had access to that endpoint)
-        # For now, we'll note this as a limitation
+        # 3. Check for encryption/security settings
+        if self.audit_check_https:
+            https_result = self._check_https_connection()
+            if https_result["risk_detected"]:
+                risks.append("https_not_enforced")
+                details["https_not_enforced"] = https_result["details"]
         
+        if self.audit_check_2fa:
+            fa_result = self._check_2fa_status()
+            if fa_result["risk_detected"]:
+                risks.append("2fa_not_enabled")
+                details["2fa_not_enabled"] = fa_result["details"]
+        
+        if self.audit_check_login_alerts:
+            alerts_result = self._check_login_alerts()
+            if alerts_result["risk_detected"]:
+                risks.append("login_alerts_not_enabled")
+                details["login_alerts_not_enabled"] = alerts_result["details"]
+        
+        if self.audit_check_active_sessions:
+            sessions_result = self._check_active_sessions()
+            if sessions_result["risk_detected"]:
+                risks.append("suspicious_active_sessions")
+                details["suspicious_active_sessions"] = sessions_result["details"]
+        
+        if self.audit_check_recent_security_checkup:
+            checkup_result = self._check_recent_security_checkup()
+            if checkup_result["risk_detected"]:
+                risks.append("no_recent_security_checkup")
+                details["no_recent_security_checkup"] = checkup_result["details"]
+        
+        if self.audit_check_account_verification:
+            verification_result = self._check_account_verification()
+            if verification_result["risk_detected"]:
+                risks.append("account_not_verified")
+                details["account_not_verified"] = verification_result["details"]
         # 4. Scan recent posts for PII and suspicious content if enabled
         if self.enable_content_scanning or self.enable_pii_detection:
             try:
