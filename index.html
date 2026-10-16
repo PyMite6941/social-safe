@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>social-safe - Instagram Privacy Protection</title>
+    <title>social-safe - Social Media Privacy Protection</title>
     <style>
         :root {
             --primary: #6a11cb;
@@ -15,6 +15,7 @@
             --success: #28a745;
             --warning: #ffc107;
             --danger: #dc3545;
+            --info: #17a2b8;
         }
         * {
             box-sizing: border-box;
@@ -122,6 +123,38 @@
             background: var(--primary);
             border-radius: 50%;
         }
+        .platforms {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .platform {
+            background: var(--light);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid #eee;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .platform:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        .platform-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .platform h3 {
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+        .platform p {
+            color: var(--gray);
+            font-size: 0.9rem;
+            text-align: center;
+        }
         .features {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -164,6 +197,13 @@
         .usage {
             background: #fff8f0;
             border-left-color: var(--secondary);
+        }
+        .audit-section {
+            background: #f0fff8;
+            border-left: 4px solid var(--success);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
         }
         pre {
             background: #f8f9fa;
@@ -211,6 +251,13 @@
         .btn-outline:hover {
             background: var(--primary);
             color: white;
+        }
+        .btn-info {
+            background: var(--info);
+            color: white;
+        }
+        .btn-info:hover {
+            background: #138496;
         }
         .steps {
             display: grid;
@@ -321,6 +368,9 @@
             .steps {
                 grid-template-columns: 1fr;
             }
+            .platforms {
+                grid-template-columns: 1fr;
+            }
         }
         .copy-btn {
             position: absolute;
@@ -342,21 +392,31 @@
         .code-wrapper {
             position: relative;
         }
+        .audit-badge {
+            background: #e2e3e5;
+            color: #41464b;
+            font-size: 0.8rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin-left: 0.5rem;
+        }
     </style>
 </head>
 <body>
     <header>
         <div class="logo">🔒</div>
         <h1>social-safe</h1>
-        <p class="tagline">Instagram privacy protection and monitoring tools</p>
+        <p class="tagline">Multi-platform social media privacy protection and monitoring</p>
     </header>
-    
+
     <nav>
         <ul>
+            <li><a href="#platforms">Platforms</a></li>
             <li><a href="#features">Features</a></li>
             <li><a href="#installation">Installation</a></li>
             <li><a href="#usage">Usage</a></li>
             <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#audit">Security Audit</a></li>
             <li><a href="#faq">FAQ</a></li>
         </ul>
     </nav>
@@ -364,13 +424,13 @@
     <section id="overview">
         <h2><span>🛡️</span> Overview</h2>
         <p>
-            social-safe is a Python package (with Node.js wrapper) that helps you monitor and protect your Instagram account
-            by detecting suspicious follower/following changes, auditing new followers for risky characteristics,
-            and alerting you via email when actionable changes are detected.
+            social-safe is a comprehensive privacy protection suite that monitors multiple social media platforms 
+            (Instagram, Twitter/X, LinkedIn, and more) to detect suspicious changes, audit account security, 
+            scan for threats in posts/DMs, and alert you via email when actionable changes are detected.
         </p>
         <p>
-            Unlike native Instagram controls, social-safe provides active monitoring and auditing capabilities that
-            work continuously to keep you informed about your account's safety.
+            Unlike native platform controls, social-safe provides active monitoring, OSINT capabilities, and 
+            automated auditing that works continuously to keep you informed about your accounts' safety.
         </p>
         <div style="text-align: center; margin: 2rem 0;">
             <a href="#installation" class="btn">Get Started</a>
@@ -378,38 +438,119 @@
         </div>
     </section>
 
+    <section id="platforms">
+        <h2><span>🌐</span> Supported Platforms</h2>
+        <p>social-safe supports monitoring and auditing for major social media platforms with platform-specific adapters:</p>
+        <div class="platforms">
+            <div class="platform">
+                <div class="platform-icon">📷</div>
+                <h3>Instagram</h3>
+                <p>Follower/following monitoring, privacy setting alerts, new follower risk assessment, post/DM content scanning</p>
+            </div>
+            <div class="platform">
+                <div class="platform-icon">🐦</div>
+                <h3>Twitter/X</h3>
+                <p>Follower/following monitoring, privacy setting alerts, new follower risk assessment, tweet/DM content scanning</p>
+            </div>
+            <div class="platform">
+                <div class="platform-icon">💼</div>
+                <h3>LinkedIn</h3>
+                <p>Connection monitoring, privacy setting alerts, new connection risk assessment, post/message content scanning</p>
+            </div>
+            <div class="platform">
+                <div class="platform-icon">🔧</div>
+                <h3>Extensible</h3>
+                <p>Easy to add new platforms using the base adapter class - Facebook, TikTok, Reddit, etc.</p>
+            </div>
+        </div>
+    </section>
+
     <section id="features">
         <h2><span>✨</span> Key Features</h2>
         <div class="features">
             <div class="feature">
-                <div class="feature-icon">🔍</div>
-                <h3>Follower/Following Monitoring</h3>
-                <p>Detects new followers, lost followers, new follows, and unfollows since last check with customizable thresholds.</p>
+                <div class="feature-icon">👥</div>
+                <h3>Follower/Connection Monitoring</h3>
+                <p>Detects new connections, lost connections, and changes since last check with customizable thresholds for each platform.</p>
             </div>
             <div class="feature">
-                <div class="feature-icon">🛡️</div>
+                <div class="feature-icon">🔒</div>
                 <h3>Privacy Setting Alerts</h3>
-                <p>Gets notified if your account accidentally switches from private to public (or vice versa).</p>
+                <p>Gets notified if your account privacy settings change unexpectedly (private ↔ public, protected ↔ unprotected).</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">🕵️‍♂️</div>
-                <h3>Privacy Audit</h3>
-                <p>Scans new followers for risky characteristics: zero posts, zero followers, high following/follower ratio.</p>
+                <h3>Privacy & Risk Audit</h3>
+                <p>Scans new connections for risky characteristics: zero posts, zero followers, high following/follower ratio, and more.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">📧</div>
                 <h3>Email Alerts</h3>
-                <p>Sends detailed email alerts when thresholds are exceeded or risks are detected.</p>
+                <p>Sends detailed email alerts when thresholds are exceeded, risks are detected, or security issues are found.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔍</div>
+                <h3>OSINT & Threat Detection</h3>
+                <p>Scans posts and DMs for suspicious content (malicious links, known threat patterns) and PII (personal information leaks).</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">⚙️</div>
                 <h3>Highly Customizable</h3>
-                <p>Configure everything via environment variables: thresholds, monitored items, audit checks, etc.</p>
+                <p>Configure everything via environment variables: thresholds, monitored items, audit checks, OSINT patterns, etc.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">🔐</div>
                 <h3>Secure by Design</h3>
-                <p>Never stores passwords; uses environment variables and app-specific passwords only.</p>
+                <p>Never stores passwords; uses environment variables and platform-specific app passwords only.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔄</div>
+                <h3>Multi-Platform</h3>
+                <p>Monitor multiple social media accounts from a single interface with platform-specific configuration.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="audit">
+        <h2><span>🔐</span> Security Audit Features</h2>
+        <div class="audit-section">
+            <h3>First-Line Defense: Encryption & Security Auditing</h3>
+            <p>As requested, the first section of the audit focuses on verifying that applications are properly securing your data:</p>
+            <ul>
+                <li>Checks for end-to-end encryption in direct messages where available</li>
+                <li>Verifies that platforms are using secure connections (HTTPS/TLS)</li>
+                <li>Monitors for known security vulnerabilities in platform implementations</li>
+                <li>Checks for proper implementation of security features like two-factor authentication</li>
+            </ul>
+        </div>
+
+        <div class="features" style="margin-top: 2rem;">
+            <div class="feature">
+                <div class="feature-icon">🔐</div>
+                <h3>Encryption Audit</h3>
+                <p>Verifies that applications are using proper encryption for data in transit and at rest where possible.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🕵️‍♂️</div>
+                <h3>PII Scanning in Posts/DMs</h3>
+                <p>Scans your posts and direct messages for personally identifiable information (PII) that could compromise your privacy:</p>
+                <ul>
+                    <li>Email addresses, phone numbers, physical addresses</li>
+                    <li>Social Security Numbers, ID numbers</li>
+                    <li>Financial information (credit cards, bank accounts)</li>
+                    <li>Dates of birth, passport numbers</li>
+                </ul>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🧪</div>
+                <h3>OSINT Threat Detection</h3>
+                <p>Scans content for known threats and suspicious patterns:</p>
+                <ul>
+                    <li>Malicious links and phishing attempts</li>
+                    <li>Known threat patterns (like the "Mr. Beast image" hacks mentioned)</li>
+                    <li>Suspicious text patterns indicating scams or social engineering</li>
+                    <li>Known malicious image hashes</li>
+                </ul>
             </div>
         </div>
     </section>
@@ -445,11 +586,54 @@ pip install -e .</code></pre>
         <h2><span>▶️</span> Usage</h2>
         <p>Set environment variables (copy <code>.env.example</code> to <code>.env</code> and fill):</p>
         <div class="code-wrapper">
-            <pre><code>export IG_USERNAME="your_instagram_handle"
+            <pre><code># Instagram (required for Instagram monitoring)
+export IG_USERNAME="your_instagram_handle"
 export IG_PASSWORD="your_app_specific_password"
+
+# Twitter/X (optional)
+export TWITTER_USERNAME="your_twitter_handle"
+export TWITTER_BEARER_TOKEN="your_twitter_bearer_token"
+# OR
+export TWITTER_API_KEY="your_api_key"
+export TWITTER_API_SECRET="your_api_secret"
+export TWITTER_ACCESS_TOKEN="your_access_token"
+export TWITTER_ACCESS_TOKEN_SECRET="your_access_token_secret"
+
+# LinkedIn (optional - future implementation)
+# export LINKEDIN_USERNAME="your_linkedin_handle"
+# export LINKEDIN_ACCESS_TOKEN="your_access_token"
+
+# Alert configuration (required)
 export ALERT_EMAIL="your_alert@example.com"
-export ALERT_APP_PASSWORD="your_smtp_app_password"</code></pre>
-            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+export ALERT_APP_PASSWORD="your_smtp_app_password"
+export SMTP_SERVER="smtp.gmail.com"
+export SMTP_PORT="465"
+
+# Monitoring configuration
+export MONITOR_FOLLOWERS="true"
+export MONITOR_FOLLOWING="true"
+export ALERT_THRESHOLD_NEW_FOLLOWERS="10"
+export ALERT_THRESHOLD_LOST_FOLLOWERS="10"
+export EXPECTED_PRIVACY="private"
+
+# Audit configuration
+export AUDIT_ENABLED="true"
+export AUDIT_RISK_ZERO_POSTS="true"
+export AUDIT_RISK_ZERO_FOLLOWERS="true"
+export AUDIT_RISK_HIGH_FOLLOWING_RATIO="true"
+export AUDIT_FOLLOWING_RATIO_THRESHOLD="100"
+export AUDIT_MIN_FOLLOWERS_FOR_RATIO="10"
+export AUDIT_ALERT_THRESHOLD_RISKY="5"
+
+# OSINT & PII scanning (optional)
+export ENABLE_CONTENT_SCANNING="false"
+export ENABLE_PII_DETECTION="false"
+# Add custom keywords for content scanning (comma-separated):
+# CONTENT_SCAN_KEYWORDS="free nft,click here for,urgent action required,mr beast,crypto giveaway"
+# Add custom PII patterns (regex format):
+# PII_PATTERNS="\\\\b\\\\d{3}-?\\\\d{2}-?\\\\d{4}\\\\b, \\\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\\\.[A-Z|a-z]{2,}\\\\b"</code></pre>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            </div>
         </div>
         <div class="env-vars">
             <h3>Environment Variables Reference</h3>
@@ -458,7 +642,7 @@ export ALERT_APP_PASSWORD="your_smtp_app_password"</code></pre>
                     <tr>
                         <th>Variable</th>
                         <th>Description</th>
-                        <th>Default</th>
+                        <th>Default/Example</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -471,6 +655,36 @@ export ALERT_APP_PASSWORD="your_smtp_app_password"</code></pre>
                         <td><code>IG_PASSWORD</code></td>
                         <td>Instagram password (use app-specific password)</td>
                         <td>Required</td>
+                    </tr>
+                    <tr>
+                        <td><code>TWITTER_USERNAME</code></td>
+                        <td>Your Twitter/X username (handle)</td>
+                        <td>Required for Twitter monitoring</td>
+                    </tr>
+                    <tr>
+                        <td><code>TWITTER_BEARER_TOKEN</code></td>
+                        <td>Twitter/X Bearer Token (v2 API)</td>
+                        <td>Alternative to OAuth 1.0a</td>
+                    </tr>
+                    <tr>
+                        <td><code>TWITTER_API_KEY</code></td>
+                        <td>Twitter/X API Key (v1.1 API)</td>
+                        <td>Alternative to Bearer Token</td>
+                    </tr>
+                    <tr>
+                        <td><code>TWITTER_API_SECRET</td>
+                        <td>Twitter/X API Secret (v1.1 API)</td>
+                        <td>Required for OAuth 1.0a</td>
+                    </tr>
+                    <tr>
+                        <td><code>TWITTER_ACCESS_TOKEN</code></td>
+                        <td>Twitter/X Access Token (v1.1 API)</td>
+                        <td>Required for OAuth 1.0a</td>
+                    </tr>
+                    <tr>
+                        <td><code>TWITTER_ACCESS_TOKEN_SECRET</code></td>
+                        <td>Twitter/X Access Token Secret (v1.1 API)</td>
+                        <td>Required for OAuth 1.0a</td>
                     </tr>
                     <tr>
                         <td><code>ALERT_EMAIL</code></td>
@@ -493,13 +707,8 @@ export ALERT_APP_PASSWORD="your_smtp_app_password"</code></pre>
                         <td>465</td>
                     </tr>
                     <tr>
-                        <td><code>EXPECTED_PRIVACY</code></td>
-                        <td>Expected account privacy ('private' or 'public')</td>
-                        <td>private</td>
-                    </tr>
-                    <tr>
                         <td><code>MONITOR_FOLLOWERS</code></td>
-                        <td>Monitor followers? ('true' or 'false')</td>
+                        <td>Monitor followers/connections? ('true' or 'false')</td>
                         <td>true</td>
                     </tr>
                     <tr>
@@ -528,28 +737,33 @@ export ALERT_APP_PASSWORD="your_smtp_app_password"</code></pre>
                         <td>10</td>
                     </tr>
                     <tr>
+                        <td><code>EXPECTED_PRIVACY</code></td>
+                        <td>Expected account privacy ('private'/'public' or 'protected'/'unprotected')</td>
+                        <td>private</td>
+                    </tr>
+                    <tr>
                         <td><code>STATE_FILE</code></td>
-                        <td>File to store previous state</td>
-                        <td>ig_state.json</td>
+                        <td>File to store previous state (per platform)</td>
+                        <td>{platform}_state.json</td>
                     </tr>
                     <tr>
                         <td><code>AUDIT_ENABLED</code></td>
-                        <td>Enable privacy audit (true/false)</td>
+                        <td>Enable privacy/security audit (true/false)</td>
                         <td>true</td>
                     </tr>
                     <tr>
                         <td><code>AUDIT_RISK_ZERO_POSTS</code></td>
-                        <td>Flag new followers with zero posts</td>
+                        <td>Flag new connections with zero posts</td>
                         <td>true</td>
                     </tr>
                     <tr>
-                        <td><code>AUDIT_RISK_ZERO_FOLLOWERS</td>
-                        <td>Flag new followers with zero followers</td>
+                        <td><code>AUDIT_RISK_ZERO_FOLLOWERS</code></td>
+                        <td>Flag new connections with zero followers</td>
                         <td>true</td>
                     </tr>
                     <tr>
                         <td><code>AUDIT_RISK_HIGH_FOLLOWING_RATIO</code></td>
-                        <td>Flag new followers with high following/follower ratio</td>
+                        <td>Flag new connections with high following/follower ratio</td>
                         <td>true</td>
                     </tr>
                     <tr>
@@ -564,22 +778,52 @@ export ALERT_APP_PASSWORD="your_smtp_app_password"</code></pre>
                     </tr>
                     <tr>
                         <td><code>AUDIT_ALERT_THRESHOLD_RISKY</code></td>
-                        <td>Number of risky new followers that triggers an alert</td>
+                        <td>Number of risky new connections that triggers an alert</td>
                         <td>5</td>
+                    </tr>
+                    <tr>
+                        <td><code>ENABLE_CONTENT_SCANNING</code></td>
+                        <td>Enable OSINT content scanning for threats (true/false)</td>
+                        <td>false</td>
+                    </tr>
+                    <tr>
+                        <td><code>CONTENT_SCAN_KEYWORDS</code></td>
+                        <td>Custom keywords for threat detection (comma-separated)</td>
+                        <td>See .env.example</td>
+                    </tr>
+                    <tr>
+                        <td><code>ENABLE_PII_DETECTION</code></td>
+                        <td>Enable PII detection in posts/DMs (true/false)</td>
+                        <td>false</td>
+                    </tr>
+                    <tr>
+                        <td><code>PII_PATTERNS</code></td>
+                        <td>Custom PII detection patterns (regex, comma-separated)</td>
+                        <td>See .env.example</td>
                     </tr>
                 </tbody>
             </table>
         </div>
         <p>Then run the monitor:</p>
         <div class="code-wrapper">
-            <pre><code>socialsafe-monitor</code></pre>
+            <pre><code># Monitor all configured platforms
+socialsafe-monitor</code></pre>
             <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
         <p>Or via the npm wrapper (if installed):</p>
         <div class="code-wrapper">
             <pre><code>socialsafe</code></pre>
             <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-        </p>
+        </div>
+        <p>Or monitor a specific platform:</p>
+        <div class="code-wrapper">
+            <pre><code># Monitor only Instagram
+socialsafe-monitor --platform instagram
+
+# Monitor only Twitter/X
+socialsafe-monitor --platform twitter</code></pre>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
         <div style="text-align: center; margin: 2rem 0;">
             <a href="https://github.com/PyMite6941/social-safe#readme" class="btn btn-secondary">Full Documentation</a>
         </div>
@@ -591,27 +835,27 @@ export ALERT_APP_PASSWORD="your_smtp_app_password"</code></pre>
             <div class="step">
                 <div class="step-number">1</div>
                 <h3>Authenticate</h3>
-                <p>Securely logs into Instagram using your credentials via Instaloader (read-only access).</p>
+                <p>Securely logs into each configured social media platform using your credentials via platform-specific libraries or official APIs (read-only access).</p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
                 <h3>Fetch Data</h3>
-                <p>Retrieves your current follower and following lists.</p>
+                <p>Retrieves your current follower/following lists, connection data, and optionally recent posts/messages for each platform.</p>
             </div>
             <div class="step">
                 <div class="step-number">3</div>
                 <h3>Compare & Analyze</h3>
-                <p>Compares against previous run, checks privacy setting, and optionally audits new followers for risks.</p>
+                <p>Compares against previous run, checks privacy settings, performs risk audits on new connections, and scans content for threats and PII if enabled.</p>
             </div>
             <div class="step">
                 <div class="step-number">4</div>
                 <h3>Alert if Needed</h3>
-                <p>Sends email alerts when thresholds are exceeded, privacy changes, or risky followers detected.</p>
+                <p>Sends email alerts when thresholds are exceeded, privacy changes are detected, risky connections are found, or security/threat issues are identified.</p>
             </div>
             <div class="step">
                 <div class="step-number">5</div>
                 <h3>Update State</h3>
-                <p>Updates the state file for efficient comparison in the next run.</p>
+                <p>Updates the state file for each platform for efficient comparison in the next run.</p>
             </div>
         </div>
     </section>
@@ -619,20 +863,26 @@ export ALERT_APP_PASSWORD="your_smtp_app_password"</code></pre>
     <section id="faq">
         <h2><span>❓</span> Frequently Asked Questions</h2>
         <div style="background: var(--light); border-radius: 10px; padding: 1.5rem;">
-            <h3>Is my Instagram password safe?</h3>
-            <p>Yes. Your password is only used to authenticate with Instagram via Instaloader and is never stored, logged, or transmitted elsewhere. We recommend using an app-specific password from Instagram's security settings.</p>
-            
-            <h3>Can this tool post or modify my account?</h3>
-            <p>No. social-safe is read-only. It only fetches your follower/following lists and account information. It does not post, message, follow, unfollow, or modify your account in any way.</p>
-            
-            <h3>What if I have many followers?</h3>
-            <p>The tool is efficient and only processes changes since the last run. Even accounts with hundreds of thousands of followers typically complete checks in seconds.</p>
-            
-            <h3>How often should I run it?</h3>
-            <p>For most users, running it once per hour via cron is sufficient. You can adjust frequency based on your needs.</p>
-            
+            <h3>Is my social media password safe?</h3>
+            <p>Yes. Your passwords are only used to authenticate with each platform via their official APIs or libraries and are never stored, logged, or transmitted elsewhere. We recommend using app-specific passwords or app-only authentication where available.</p>
+            <hr>
+            <h3>Can this tool post or modify my accounts?</h3>
+            <p>No. social-safe is read-only. It only fetches your data and does not post, message, follow, unfollow, or modify your accounts in any way.</p>
+            <hr>
+            <h3>What platforms are currently supported?</h3>
+            <p>Currently supported platforms include Instagram and Twitter/X, with LinkedIn and other platforms planned for future releases. The framework is designed to be easily extensible to new platforms.</p>
+            <hr>
+            <h3>How does the OSINT scanning work?</h3>
+            <p>The OSINT scanning feature (when enabled) analyzes your posts and direct messages for known threat patterns, malicious content, and personally identifiable information. It only scans YOUR own content that you have permission to analyze.</p>
+            <hr>
+            <h3>How often should I run the monitor?</h3>
+            <p>For most users, running it once per hour via cron is sufficient. You can adjust frequency based on your needs and platform API rate limits.</p>
+            <hr>
             <h3>Does it work with business or creator accounts?</h3>
-            <p>Yes. The tool works with any Instagram account type (personal, business, creator) as long as you have the login credentials.</p>
+            <p>Yes. The tool works with any account type (personal, business, creator) on supported platforms as long as you have the login credentials.</p>
+            <hr>
+            <h3>Is this tool compliant with platform terms of service?</h3>
+            <p>Yes. social-safe only uses official APIs and granted permissions to access your own account data, which is compliant with platform terms of service.</p>
         </div>
     </section>
 
