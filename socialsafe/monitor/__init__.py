@@ -4,13 +4,16 @@ import os
 from .base import BaseSocialMonitor, ContentScanner, PIIDetector
 from .instagram import InstagramMonitor
 from .twitter import TwitterMonitor
+from .reddit import RedditMonitor
+from .linkedin import LinkedInMonitor
+from .playwright_base import BasePlaywrightMonitor
 
 # Factory function to get monitor instance by platform name
 def get_monitor(platform: str, **kwargs) -> BaseSocialMonitor:
     """Get a monitor instance for the specified platform.
     
     Args:
-        platform: Platform name ('instagram', 'twitter', etc.)
+        platform: Platform name ('instagram', 'twitter', 'reddit', 'linkedin', etc.)
         **kwargs: Arguments to pass to the monitor constructor
         
     Returns:
@@ -22,6 +25,8 @@ def get_monitor(platform: str, **kwargs) -> BaseSocialMonitor:
     monitors = {
         'instagram': InstagramMonitor,
         'twitter': TwitterMonitor,
+        'reddit': RedditMonitor,
+        'linkedin': LinkedInMonitor,
         # Add more platforms here as they are implemented
     }
     
@@ -57,8 +62,11 @@ __all__ = [
     'BaseSocialMonitor',
     'ContentScanner',
     'PIIDetector',
+    'BasePlaywrightMonitor',
     'InstagramMonitor',
     'TwitterMonitor',
+    'RedditMonitor',
+    'LinkedInMonitor',
     'get_monitor',
     'monitor_instagram'
 ]

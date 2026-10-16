@@ -5,8 +5,8 @@ setup(
     version="0.1.0",
     author="pymite6941",
     author_email="you@example.com",
-    description="Instagram privacy protection and monitoring tools",
-    long_description="Package for protecting Instagram accounts: hiding posts, monitoring followers/following, detecting suspicious activity",
+    description="Social media privacy protection and monitoring tools",
+    long_description="Package for protecting social media accounts: monitoring followers/following, detecting suspicious activity, privacy auditing, and content scanning",
     long_description_content_type="text/markdown",
     url="https://github.com/pymite6941/social-safe",
     project_urls={
@@ -29,6 +29,8 @@ setup(
     install_requires=[
         "instaloader>=4.8.0",
         "tweepy>=4.14.0",
+        "praw>=7.7.0",
+        "playwright>=1.64.0",
     ],
     entry_points={
         "console_scripts": [
@@ -36,3 +38,4 @@ setup(
         ],
     },
 )
+EOF

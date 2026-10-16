@@ -285,7 +285,7 @@
             border-radius: 50%;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-center;
             font-weight: bold;
             font-size: 0.9rem;
         }
@@ -445,22 +445,32 @@
             <div class="platform">
                 <div class="platform-icon">📷</div>
                 <h3>Instagram</h3>
-                <p>Follower/following monitoring, privacy setting alerts, new follower risk assessment, post/DM content scanning</p>
+                <p>Follower/following monitoring, privacy setting alerts, new follower risk assessment, post/DM content scanning, phishing detection, AI social engineering evaluation, PII detection</p>
             </div>
             <div class="platform">
                 <div class="platform-icon">🐦</div>
                 <h3>Twitter/X</h3>
-                <p>Follower/following monitoring, privacy setting alerts, new follower risk assessment, tweet/DM content scanning</p>
+                <p>Follower/following monitoring, privacy setting alerts, new follower risk assessment, tweet/DM content scanning, phishing detection, AI social engineering evaluation, PII detection</p>
+            </div>
+            <div class="platform">
+                <div class="platform-icon">🤖</div>
+                <h3>Reddit</h3>
+                <p>Follower/following (subscribed subreddits) monitoring, privacy setting alerts, new follower/risk assessment, post/comment content scanning, phishing detection, AI social engineering evaluation, PII detection</p>
             </div>
             <div class="platform">
                 <div class="platform-icon">💼</div>
                 <h3>LinkedIn</h3>
-                <p>Connection monitoring, privacy setting alerts, new connection risk assessment, post/message content scanning</p>
+                <p>Connection/follower monitoring, privacy setting alerts, new connection/follower risk assessment, post/article content scanning, phishing detection, AI social engineering evaluation, PII detection (uses Playwright for web automation)</p>
+            </div>
+            <div class="platform">
+                <div class="platform-icon">📘</div>
+                <h3>Facebook (Planned)</h3>
+                <p>Friend/follower monitoring, privacy setting alerts, new friend/risk assessment, post/message/content scanning (requires Facebook Developer App or Playwright automation)</p>
             </div>
             <div class="platform">
                 <div class="platform-icon">🔧</div>
                 <h3>Extensible</h3>
-                <p>Easy to add new platforms using the base adapter class - Facebook, TikTok, Reddit, etc.</p>
+                <p>Easy to add new platforms using the base adapter class or PlaywrightBase - TikTok, YouTube, Discord, etc.</p>
             </div>
         </div>
     </section>
@@ -550,9 +560,7 @@
                     <li>Known threat patterns (like the "Mr. Beast image" hacks mentioned)</li>
                     <li>Suspicious text patterns indicating scams or social engineering</li>
                     <li>Known malicious image hashes</li>
-                
-                    <li>Phishing attempts (malicious links, suspicious URLs)</li>
-                    <li>AI-evaluated social engineering risk in text content</li></ul>
+                </ul>
             </div>
         </div>
     </section>
@@ -601,9 +609,9 @@ export TWITTER_API_SECRET="your_api_secret"
 export TWITTER_ACCESS_TOKEN="your_access_token"
 export TWITTER_ACCESS_TOKEN_SECRET="your_access_token_secret"
 
-# LinkedIn (optional - future implementation)
-# export LINKEDIN_USERNAME="your_linkedin_handle"
-# export LINKEDIN_ACCESS_TOKEN="your_access_token"
+# LinkedIn (optional - requires Playwright)
+export LINKEDIN_USERNAME="your_linkedin_handle"
+export LINKEDIN_PASSWORD="your_linkedin_password"  # Optional for public data viewing
 
 # Alert configuration (required)
 export ALERT_EMAIL="your_alert@example.com"
@@ -634,8 +642,7 @@ export ENABLE_PII_DETECTION="false"
 # CONTENT_SCAN_KEYWORDS="free nft,click here for,urgent action required,mr beast,crypto giveaway"
 # Add custom PII patterns (regex format):
 # PII_PATTERNS="\\\\b\\\\d{3}-?\\\\d{2}-?\\\\d{4}\\\\b, \\\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\\\.[A-Z|a-z]{2,}\\\\b"</code></pre>
-                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-            </div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
         <div class="env-vars">
             <h3>Environment Variables Reference</h3>
@@ -674,7 +681,7 @@ export ENABLE_PII_DETECTION="false"
                         <td>Alternative to Bearer Token</td>
                     </tr>
                     <tr>
-                        <td><code>TWITTER_API_SECRET</td>
+                        <td><code>TWITTER_API_SECRET</code></td>
                         <td>Twitter/X API Secret (v1.1 API)</td>
                         <td>Required for OAuth 1.0a</td>
                     </tr>
@@ -687,6 +694,16 @@ export ENABLE_PII_DETECTION="false"
                         <td><code>TWITTER_ACCESS_TOKEN_SECRET</code></td>
                         <td>Twitter/X Access Token Secret (v1.1 API)</td>
                         <td>Required for OAuth 1.0a</td>
+                    </tr>
+                    <tr>
+                        <td><code>LINKEDIN_USERNAME</code></td>
+                        <td>Your LinkedIn username or email</td>
+                        <td>Required for LinkedIn monitoring</td>
+                    </tr>
+                    <tr>
+                        <td><code>LINKEDIN_PASSWORD</code></td>
+                        <td>LinkedIn password (use app-specific password where possible)</td>
+                        <td>Optional for public data viewing</td>
                     </tr>
                     <tr>
                         <td><code>ALERT_EMAIL</code></td>
@@ -760,164 +777,4 @@ export ENABLE_PII_DETECTION="false"
                     </tr>
                     <tr>
                         <td><code>AUDIT_RISK_ZERO_FOLLOWERS</code></td>
-                        <td>Flag new connections with zero followers</td>
-                        <td>true</td>
-                    </tr>
-                    <tr>
-                        <td><code>AUDIT_RISK_HIGH_FOLLOWING_RATIO</code></td>
-                        <td>Flag new connections with high following/follower ratio</td>
-                        <td>true</td>
-                    </tr>
-                    <tr>
-                        <td><code>AUDIT_FOLLOWING_RATIO_THRESHOLD</code></td>
-                        <td>Following/Follower ratio above this is risky</td>
-                        <td>100</td>
-                    </tr>
-                    <tr>
-                        <td><code>AUDIT_MIN_FOLLOWERS_FOR_RATIO</code></td>
-                        <td>Minimum followers to apply ratio check</td>
-                        <td>10</td>
-                    </tr>
-                    <tr>
-                        <td><code>AUDIT_ALERT_THRESHOLD_RISKY</code></td>
-                        <td>Number of risky new connections that triggers an alert</td>
-                        <td>5</td>
-                    </tr>
-                    <tr>
-                        <td><code>ENABLE_CONTENT_SCANNING</code></td>
-                        <td>Enable OSINT content scanning for threats (true/false)</td>
-                        <td>false</td>
-                    </tr>
-                    <tr>
-                        <td><code>CONTENT_SCAN_KEYWORDS</code></td>
-                        <td>Custom keywords for threat detection (comma-separated)</td>
-                        <td>See .env.example</td>
-                    </tr>
-                    <tr>
-                        <td><code>ENABLE_PII_DETECTION</code></td>
-                        <td>Enable PII detection in posts/DMs (true/false)</td>
-                        <td>false</td>
-                    </tr>
-                    <tr>
-                        <td><code>PII_PATTERNS</code></td>
-                        <td>Custom PII detection patterns (regex, comma-separated)</td>
-                        <td>See .env.example</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <p>Then run the monitor:</p>
-        <div class="code-wrapper">
-            <pre><code># Monitor all configured platforms
-socialsafe-monitor</code></pre>
-            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-        </div>
-        <p>Or via the npm wrapper (if installed):</p>
-        <div class="code-wrapper">
-            <pre><code>socialsafe</code></pre>
-            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-        </div>
-        <p>Or monitor a specific platform:</p>
-        <div class="code-wrapper">
-            <pre><code># Monitor only Instagram
-socialsafe-monitor --platform instagram
-
-# Monitor only Twitter/X
-socialsafe-monitor --platform twitter</code></pre>
-            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-        </div>
-        <div style="text-align: center; margin: 2rem 0;">
-            <a href="https://github.com/PyMite6941/social-safe#readme" class="btn btn-secondary">Full Documentation</a>
-        </div>
-    </section>
-
-    <section id="how-it-works">
-        <h2><span>⚙️</span> How It Works</h2>
-        <div class="steps">
-            <div class="step">
-                <div class="step-number">1</div>
-                <h3>Authenticate</h3>
-                <p>Securely logs into each configured social media platform using your credentials via platform-specific libraries or official APIs (read-only access).</p>
-            </div>
-            <div class="step">
-                <div class="step-number">2</div>
-                <h3>Fetch Data</h3>
-                <p>Retrieves your current follower/following lists, connection data, and optionally recent posts/messages for each platform.</p>
-            </div>
-            <div class="step">
-                <div class="step-number">3</div>
-                <h3>Compare & Analyze</h3>
-                <p>Compares against previous run, checks privacy settings, performs risk audits on new connections, and scans content for threats and PII if enabled.</p>
-            </div>
-            <div class="step">
-                <div class="step-number">4</div>
-                <h3>Alert if Needed</h3>
-                <p>Sends email alerts when thresholds are exceeded, privacy changes are detected, risky connections are found, or security/threat issues are identified.</p>
-            </div>
-            <div class="step">
-                <div class="step-number">5</div>
-                <h3>Update State</h3>
-                <p>Updates the state file for each platform for efficient comparison in the next run.</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="faq">
-        <h2><span>❓</span> Frequently Asked Questions</h2>
-        <div style="background: var(--light); border-radius: 10px; padding: 1.5rem;">
-            <h3>Is my social media password safe?</h3>
-            <p>Yes. Your passwords are only used to authenticate with each platform via their official APIs or libraries and are never stored, logged, or transmitted elsewhere. We recommend using app-specific passwords or app-only authentication where available.</p>
-            <hr>
-            <h3>Can this tool post or modify my accounts?</h3>
-            <p>No. social-safe is read-only. It only fetches your data and does not post, message, follow, unfollow, or modify your accounts in any way.</p>
-            <hr>
-            <h3>What platforms are currently supported?</h3>
-            <p>Currently supported platforms include Instagram and Twitter/X, with LinkedIn and other platforms planned for future releases. The framework is designed to be easily extensible to new platforms.</p>
-            <hr>
-            <h3>How does the OSINT scanning work?</h3>
-            <p>The OSINT scanning feature (when enabled) analyzes your posts and direct messages for known threat patterns, malicious content, and personally identifiable information. It only scans YOUR own content that you have permission to analyze.</p>
-            <hr>
-            <h3>How often should I run the monitor?</h3>
-            <p>For most users, running it once per hour via cron is sufficient. You can adjust frequency based on your needs and platform API rate limits.</p>
-            <hr>
-            <h3>Does it work with business or creator accounts?</h3>
-            <p>Yes. The tool works with any account type (personal, business, creator) on supported platforms as long as you have the login credentials.</p>
-            <hr>
-            <h3>Is this tool compliant with platform terms of service?</h3>
-            <p>Yes. social-safe only uses official APIs and granted permissions to access your own account data, which is compliant with platform terms of service.</p>
-        </div>
-    </section>
-
-    <footer class="footer">
-        <p>&copy; 2026 pymite6941. Licensed under <a href="https://github.com/PyMite6941/social-safe/blob/main/LICENSE">MIT License</a>.</p>
-        <p>
-            <a href="https://github.com/PyMite6941/social-safe">GitHub Repository</a> |
-            <a href="https://github.com/PyMite6941/social-safe/issues">Report Issues</a> |
-            <a href="https://github.com/PyMite6941/social-safe/pulls">Contribute</a>
-        </p>
-    </footer>
-
-    <script>
-        function copyCode(button) {
-            const codeWrapper = button.parentElement;
-            const codeElement = codeWrapper.querySelector('code, pre');
-            if (!codeElement) return;
-            
-            const textToCopy = codeElement.textContent;
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                const originalText = button.textContent;
-                button.textContent = 'Copied!';
-                setTimeout(() => {
-                    button.textContent = originalText;
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy: ', err);
-                button.textContent = 'Error';
-                setTimeout(() => {
-                    button.textContent = 'Copy';
-                }, 2000);
-            });
-        }
-    </script>
-</body>
-</html>
+                        <td>Flag new connections with zero followers</td
