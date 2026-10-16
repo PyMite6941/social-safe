@@ -34,6 +34,13 @@ class BaseSocialMonitor(ABC):
         content_scan_image_hashes: Optional[List[str]] = None,
         enable_pii_detection: Optional[bool] = None,
         pii_patterns: Optional[List[str]] = None,
+        enable_phishing_detection: Optional[bool] = None,
+        enable_ai_social_engineering_eval: Optional[bool] = None,
+        ai_model_provider: Optional[str] = None,
+        ai_model_name: Optional[str] = None,
+        ai_api_key_env_var: Optional[str] = None,
+        ai_api_base_url: Optional[str] = None,
+        ai_social_engineering_threshold: Optional[int] = None,
     ):
         """Initialize base monitor with configuration."""
         self.username = self._get_username(username)
@@ -57,6 +64,13 @@ class BaseSocialMonitor(ABC):
         self.content_scan_image_hashes = content_scan_image_hashes or []
         self.enable_pii_detection = self._get_bool_env('ENABLE_PII_DETECTION', enable_pii_detection, False)
         self.pii_patterns = pii_patterns or []
+        self.enable_phishing_detection = self._get_bool_env('ENABLE_PHISHING_DETECTION', enable_phishing_detection, False)
+        self.enable_ai_social_engineering_eval = self._get_bool_env('ENABLE_AI_SOCIAL_ENGINEERING_EVAL', enable_ai_social_engineering_eval, False)
+        self.ai_model_provider = ai_model_provider or os.getenv('AI_MODEL_PROVIDER')
+        self.ai_model_name = ai_model_name or os.getenv('AI_MODEL_NAME')
+        self.ai_api_key_env_var = ai_api_key_env_var or os.getenv('AI_API_KEY_ENV_VAR', 'AI_API_KEY')
+        self.ai_api_base_url = ai_api_base_url or os.getenv('AI_API_BASE_URL')
+        self.ai_social_engineering_threshold = self._get_int_env('AI_SOCIAL_ENGINEERING_THRESHOLD', ai_social_engineering_threshold, 70)
         
         # Initialize state
         self.state = self._load_state()
@@ -66,7 +80,8 @@ class BaseSocialMonitor(ABC):
         if self.enable_content_scanning:
             self.content_scanner = ContentScanner(
                 keywords=self.content_scan_keywords,
-                known_bad_hashes=self.content_scan_image_hashes
+                known_bad_hashes=self.content_scan_image_hashes,
+                enable_phishing_detection=self.enable_phishing_detection
             )
         else:
             self.content_scanner = None
@@ -78,6 +93,17 @@ class BaseSocialMonitor(ABC):
             )
         else:
             self.pii_detector = None
+            
+        # Initialize AI evaluator if enabled
+        if self.enable_ai_social_engineering_eval:
+            self.ai_evaluator = AIEvaluator(
+                provider=self.ai_model_provider,
+                model_name=self.ai_model_name,
+                api_key_env_var=self.ai_api_key_env_var,
+                api_base_url=self.ai_api_base_url
+            )
+        else:
+            self.ai_evaluator = None
 
     @property
     @abstractmethod
@@ -201,6 +227,20 @@ class BaseSocialMonitor(ABC):
                 risky_list = details.get("risky_new_followers", [])
                 if len(risky_list) > self.audit_alert_threshold_risky:
                     return True
+            
+            # Check for phishing threats
+            if "phishing_detected" in risks:
+                details = audit_result.get("details", {})
+                phishing_list = details.get("phishing_detected", [])
+                if len(phishing_list) > 0:  # Alert on any phishing detection
+                    return True
+            
+            # Check for high social engineering risk
+            if "high_social_engineering_risk" in risks:
+                details = audit_result.get("details", {})
+                se_score = details.get("social_engineering_score", 0)
+                if se_score >= self.ai_social_engineering_threshold:
+                    return True
         
         return False
 
@@ -260,11 +300,37 @@ class BaseSocialMonitor(ABC):
         
         return self.pii_detector.detect_all(text)
 
+    def scan_for_phishing(self, text: str, image_urls: List[str] = None) -> Dict[str, List[str]]:
+        """Scan content for phishing threats using the content scanner.
+        
+        Returns:
+            Dict with keys 'text_threats' and 'image_threats'
+        """
+        if not self.enable_content_scanning or not self.content_scanner:
+            return {"text_threats": [], "image_threats": []}
+        
+        if image_urls is None:
+            image_urls = []
+            
+        # Use the content scanner which now includes phishing detection
+        return self.content_scanner.scan_post(text, image_urls)
+
+    def evaluate_social_engineering_risk(self, text: str) -> Dict[str, object]:
+        """Evaluate text for social engineering risk using AI.
+        
+        Returns:
+            Dict with keys: risk_level (str), score (int), explanation (str)
+        """
+        if not self.enable_ai_social_engineering_eval or not self.ai_evaluator:
+            return {"risk_level": "disabled", "score": 0, "explanation": "AI social engineering evaluation is disabled"}
+        
+        return self.ai_evaluator.evaluate(text)
+
 
 class ContentScanner:
-    """Handles OSINT content scanning for threats."""
+    """Handles OSINT content scanning for threats including phishing detection."""
     
-    def __init__(self, keywords: List[str] = None, known_bad_hashes: List[str] = None):
+    def __init__(self, keywords: List[str] = None, known_bad_hashes: List[str] = None, enable_phishing_detection: bool = False):
         # Known bad image hashes (perceptual hashes of malicious images)
         # In practice, these would be loaded from a database or feed
         self.known_bad_image_hashes = set(known_bad_hashes or [])
@@ -286,8 +352,25 @@ class ContentScanner:
         filtered_keywords = [kw.strip() for kw in all_keywords if kw.strip()]
         self.suspicious_text_patterns = [rf"(?i){re.escape(kw)}" for kw in filtered_keywords]
         
+        # Phishing-specific patterns
+        self.phishing_patterns = [
+            # Urgent/threatening language
+            r"(?i)(urgent|immediate action|account suspended|verify immediately|security alert)",
+            # Suspicious URLs/link shorteners
+            r"(?i)(bit\.ly|tinyurl|t\.co|shortlink|url\.shorten)",
+            # Fake login pages
+            r"(?i)(login.*secure|secure.*login|account.*verify|verify.*account)",
+            # Financial scams
+            r"(?i)(wire transfer|funds transfer|inheritance|lottery winner|prize money)",
+            # Impersonation
+            r"(?i)(from.*support|from.*security|from.*admin|official.*notification)",
+            # Too good to be true
+            r"(?i)(you.*won|congratulations.*you|free.*gift|claim.*prize)",
+        ]
+        
         # Compile regex patterns
-        self.compiled_patterns = [re.compile(pattern) for pattern in self.suspicious_text_patterns]
+        self.compiled_suspicious_patterns = [re.compile(pattern) for pattern in self.suspicious_text_patterns]
+        self.compiled_phishing_patterns = [re.compile(pattern) for pattern in self.phishing_patterns] if enable_phishing_detection else []
     
     def scan_image(self, image_path_or_url: str) -> List[str]:
         """Scan an image for known threats.
@@ -304,35 +387,49 @@ class ContentScanner:
         # TODO: Implement actual perceptual hashing
         return []
     
-    def scan_text(self, text: str) -> List[str]:
-        """Scan text for suspicious patterns.
+    def scan_text(self, text: str) -> Dict[str, List[str]]:
+        """Scan text for suspicious patterns and phishing attempts.
         
         Returns:
-            List of threat identifiers found (empty if none)
+            Dict with keys 'suspicious_threats' and 'phishing_threats'
         """
-        threats = []
-        for i, pattern in enumerate(self.compiled_patterns):
+        suspicious_threats = []
+        phishing_threats = []
+        
+        # Check for suspicious patterns
+        for i, pattern in enumerate(self.compiled_suspicious_patterns):
             if pattern.search(text):
-                threats.append(f"suspicious_text_pattern_{i}")
-        return threats
+                suspicious_threats.append(f"suspicious_text_pattern_{i}")
+        
+        # Check for phishing patterns if enabled
+        if self.compiled_phishing_patterns:
+            for i, pattern in enumerate(self.compiled_phishing_patterns):
+                if pattern.search(text):
+                    phishing_threats.append(f"phishing_pattern_{i}")
+        
+        return {
+            "suspicious_threats": suspicious_threats,
+            "phishing_threats": phishing_threats
+        }
     
     def scan_post(self, post_text: str, image_urls: List[str] = None) -> Dict[str, List[str]]:
         """Scan a complete post (text and images) for threats.
         
         Returns:
             Dict with keys 'text_threats' and 'image_threats'
+            where each contains dicts with 'suspicious' and 'phishing' subkeys
         """
         if image_urls is None:
             image_urls = []
             
-        text_threats = self.scan_text(post_text)
+        text_results = self.scan_text(post_text)
         image_threats = []
         
         for url in image_urls:
             image_threats.extend(self.scan_image(url))
         
         return {
-            "text_threats": text_threats,
+            "text_threats": text_results,
             "image_threats": image_threats
         }
 
@@ -435,12 +532,138 @@ class PIIDetector:
         return results
 
 
+class AIEvaluator:
+    """Evaluates content for social engineering risk using AI models."""
+    
+    def __init__(self, provider: Optional[str] = None, model_name: Optional[str] = None,
+                 api_key_env_var: str = None, api_base_url: Optional[str] = None):
+        self.provider = provider
+        self.model_name = model_name
+        self.api_key_env_var = api_key_env_var or 'AI_API_KEY'
+        self.api_base_url = api_base_url
+        self.api_key = None
+        self._load_api_key()
+    
+    def _load_api_key(self):
+        """Load API key from environment variable."""
+        if self.api_key_env_var:
+            self.api_key = os.getenv(self.api_key_env_var)
+    
+    def evaluate(self, text: str) -> Dict[str, object]:
+        """Evaluate text for social engineering risk.
+        
+        Returns:
+            Dict with keys: risk_level (str), score (int), explanation (str)
+        """
+        # If not configured, return disabled
+        if not self.api_key:
+            return {
+                "risk_level": "disabled", 
+                "score": 0, 
+                "explanation": "AI evaluation is not configured. Set API key via environment variable."
+            }
+        
+        # For now, return a placeholder implementation
+        # In a real implementation, this would call an AI API
+        # We'll implement a simple rule-based approach for demonstration
+        # that can be replaced with actual API calls
+        
+        # Simple heuristic for demonstration (would be replaced with actual AI call)
+        social_engineering_indicators = [
+            r'(?i)(urgent|emergency|immediate action required)',
+            r'(?i)(your account.*(?:locked|suspended|compromised))',
+            r'(?i)(verify.*identity|confirm.*details)',
+            r'(?i)(click.*here|download.*attachment)',
+            r'(?i)(limited time|offer expires|act now)',
+            r'(?i)(congratulations|you.*won|prize|reward)',
+            r'(?i)(help.*me|financial trouble|wire transfer)',
+            r'(?i)(secret.*deal|confidential|private.*offer)',
+            r'(?i)(authorities|police|court|legal.*action)',
+            r'(?i)(family.*emergency|friend.*in.*need)'
+        ]
+        
+        score = 0
+        detected_indicators = []
+        
+        for pattern in social_engineering_indicators:
+            if re.search(pattern, text):
+                score += 10  # Each indicator adds 10 points
+                detected_indicators.append(pattern)
+        
+        # Cap score at 100
+        score = min(score, 100)
+        
+        # Determine risk level
+        if score >= 70:
+            risk_level = "high"
+        elif score >= 40:
+            risk_level = "medium"
+        elif score > 0:
+            risk_level = "low"
+        else:
+            risk_level = "minimal"
+        
+        explanation = f"Detected {len(detected_indicators)} social engineering indicators: {', '.join(detected_indicators[:3])}{'...' if len(detected_indicators) > 3 else ''}"
+        
+        return {
+            "risk_level": risk_level,
+            "score": score,
+            "explanation": explanation
+        }
+        
+        # TODO: Replace the above with actual AI API call like:
+        # return self._call_ai_api(text)
+    
+    def _call_ai_api(self, text: str) -> Dict[str, object]:
+        """Make actual API call to AI service for social engineering evaluation.
+        
+        This is a placeholder for the actual implementation which would
+        depend on the specific AI provider (OpenAI, Anthropic, etc.).
+        """
+        # This would be implemented based on the provider:
+        # - OpenAI: Use openai library to call ChatCompletion
+        # - Anthropic: Use anthropic library to call Messages API
+        # - Custom: Use requests to call custom endpoint
+        #
+        # For now, we'll return a placeholder that indicates this needs
+        # to be implemented with actual API credentials
+        
+        # In a production implementation, this would:
+        # 1. Format the request according to the provider's API
+        # 2. Send the request with proper authentication
+        # 3. Parse the response to extract risk score and explanation
+        # 4. Handle errors and rate limiting
+        #
+        # Example structure for OpenAI:
+        # import openai
+        # openai.api_key = self.api_key
+        # response = openai.ChatCompletion.create(
+        #     model=self.model_name or "gpt-3.5-turbo",
+        #     messages=[
+        #         {"role": "system", "content": "You are a security expert analyzing text for social engineering risk. Provide a score from 0-100 where 0 is no risk and 100 is high risk, along with a brief explanation."},
+        #         {"role": "user", "content": f"Analyze this text for social engineering risk: {text}"}
+        #     ],
+        #     max_tokens=150
+        # )
+        # 
+        # Then parse response.choices[0].message.content to extract score and explanation
+        
+        # For now, return indication that this needs implementation
+        return {
+            "risk_level": "not_implemented",
+            "score": 0,
+            "explanation": "AI API call not implemented. This is a placeholder for actual AI service integration."
+        }
+
+
 # Example usage would be in platform-specific implementations
 # For instance, in TwitterMonitor:
-#   scanner = ContentScanner()
+#   scanner = ContentScanner(enable_phishing_detection=True)
 #   pii_detector = PIIDetector()
+#   ai_evaluator = AIEvaluator(provider="openai", model_name="gpt-3.5-turbo")
 #   for tweet in self.get_user_timeline():
 #       threats = scanner.scan_post(tweet.text, tweet.media_urls)
 #       pii_matches = pii_detector.detect_all(tweet.text)
-#       if threats["text_threats"] or threats["image_threats"] or any(pii_matches.values()):
+#       se_risk = ai_evaluator.evaluate(tweet.text)
+#       if threats["text_threats"]["suspicious_threats"] or threats["text_threats"]["phishing_threats"] or threats["image_threats"] or any(pii_matches.values()) or se_risk["score"] > 50:
 #           # Handle threat detection
