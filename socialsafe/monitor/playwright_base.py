@@ -1,5 +1,7 @@
 """Base class for Playwright-based social media monitors."""
 
+
+from __future__ import annotations
 import asyncio
 import os
 from abc import ABC, abstractmethod

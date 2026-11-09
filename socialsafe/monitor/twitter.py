@@ -1,5 +1,7 @@
 """Twitter/X monitor adapter for social-safe"""
 
+
+from __future__ import annotations
 import tweepy
 import os
 from typing import Set, Dict, Optional, List

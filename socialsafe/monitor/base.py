@@ -6,6 +6,90 @@ from pathlib import Path
 import json
 import os
 import re
+import sys
+
+from .threats import analyze_url, extract_urls, match_emerging_threats
+
+
+def user_data_dir() -> Path:
+    """Per-user data directory for social-safe on Windows, macOS, and Linux.
+
+    Override with the SOCIALSAFE_HOME environment variable.
+    """
+    override = os.getenv("SOCIALSAFE_HOME")
+    if override:
+        return Path(override).expanduser()
+    if os.name == "nt":
+        base = os.getenv("LOCALAPPDATA") or os.getenv("APPDATA") or str(Path.home() / "AppData" / "Local")
+        return Path(base) / "socialsafe"
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / "socialsafe"
+    return Path(os.getenv("XDG_STATE_HOME") or Path.home() / ".local" / "state") / "socialsafe"
+
+
+def default_state_path(platform: str) -> Path:
+    """Where a platform's follower state is stored.
+
+    A ``<platform>_state.json`` already in the working directory (the layout
+    used before 0.2.0) keeps being used so existing installs don't lose state.
+    """
+    legacy = Path(f"{platform}_state.json")
+    if legacy.exists():
+        return legacy
+    return user_data_dir() / f"{platform}_state.json"
+
+
+# Where each platform's 2FA / MFA settings live.
+MFA_SETUP_URLS: Dict[str, str] = {
+    "instagram": "https://www.instagram.com/accounts/security/",
+    "twitter": "https://x.com/settings/security",
+    "linkedin": "https://www.linkedin.com/mypreferences/d/two-step-verification",
+    "reddit": "https://www.reddit.com/settings/safety",
+    "facebook": "https://accountscenter.facebook.com/password_and_security",
+    "tiktok": "https://www.tiktok.com/setting/security",
+    "youtube": "https://myaccount.google.com/signinoptions/two-step-verification",
+    "discord": "https://discord.com/channels/@me",
+}
+
+# Human-readable path to each platform's 2FA / MFA settings.
+MFA_GUIDANCE: Dict[str, str] = {
+    "instagram": (
+        "Open Instagram > Accounts Center > Password and security > "
+        "Two-factor authentication. Choose Authentication app, SMS, or WhatsApp. "
+        "Save backup codes."
+    ),
+    "twitter": (
+        "Open X > Settings and privacy > Security and account access > "
+        "Security > Two-factor authentication. Choose Authentication app "
+        "or Security key."
+    ),
+    "linkedin": (
+        "Open LinkedIn > Me > Settings & Privacy > Sign in & security > "
+        "Two-step verification. Choose Authenticator app or Phone number."
+    ),
+    "reddit": (
+        "Open Reddit > User Settings > Safety > Use two factor "
+        "authentication. Toggle on and follow setup."
+    ),
+    "facebook": (
+        "Open Facebook > Settings & privacy > Settings > Accounts Center > "
+        "Password and security > Two-factor authentication. Choose "
+        "Authentication app or Security key and save recovery codes."
+    ),
+    "tiktok": (
+        "Open TikTok > Profile > Menu > Settings and privacy > Security & "
+        "permissions > 2-step verification. Pick at least two methods."
+    ),
+    "youtube": (
+        "YouTube uses your Google Account: open myaccount.google.com > "
+        "Security > 2-Step Verification. Prefer passkeys, a security key, "
+        "or Google prompts over SMS."
+    ),
+    "discord": (
+        "Open Discord > User Settings (gear icon) > My Account > Password and "
+        "Authentication > Enable Authenticator App. Save your backup codes."
+    ),
+}
 
 
 class BaseSocialMonitor(ABC):
@@ -50,7 +134,7 @@ class BaseSocialMonitor(ABC):
     ):
         """Initialize base monitor with configuration."""
         self.username = self._get_username(username)
-        self.state_file = Path(state_file or os.getenv('STATE_FILE', f'{self.platform_name}_state.json'))
+        self.state_file = Path(state_file or os.getenv('STATE_FILE') or default_state_path(self.platform_name))
         self.expected_privacy = self._get_expected_privacy(expected_privacy)
         self.monitor_followers = self._get_bool_env('MONITOR_FOLLOWERS', monitor_followers, True)
         self.monitor_following = self._get_bool_env('MONITOR_FOLLOWING', monitor_following, True)
@@ -174,19 +258,41 @@ class BaseSocialMonitor(ABC):
         }
 
     def _check_2fa_status(self) -> Dict[str, object]:
-        """Check if two-factor authentication is enabled.
-        
+        """Check if two-factor authentication / MFA is enabled.
+
+        Most social platforms do not expose 2FA status through their public
+        APIs, so this returns a structured result with ``mfa_enabled`` set to
+        ``None`` (unknown) when the platform cannot confirm it, together with
+        platform-specific guidance on how the user can verify and enable MFA
+        manually.
+
         Returns:
-            Dict with risk status and details (platform-specific implementation needed)
+            Dict with keys:
+              - risk_detected (bool): True if MFA status is unknown or disabled
+              - details (dict): mfa_enabled (bool|None), method (str|None),
+                platform (str), guidance (str), setup_url (str|None)
         """
-        # This is a placeholder - most platforms don't expose 2FA status via public APIs
-        # Platform-specific implementations should override this method
+        platform = getattr(self, "platform_name", "unknown")
+        guidance = MFA_GUIDANCE.get(
+            platform,
+            "Go to your account security settings and enable two-factor / "
+            "multi-factor authentication (preferably an authenticator app or "
+            "security key).",
+        )
+        setup_url = MFA_SETUP_URLS.get(platform)
         return {
-            "risk_detected": False,
+            "risk_detected": True,
             "details": {
-                "2fa_enabled": None,
-                "note": "2FA status check not implemented for this platform"
-            }
+                "mfa_enabled": None,
+                "method": None,
+                "platform": platform,
+                "note": (
+                    "2FA status is not exposed by this platform's public API. "
+                    "Verify and enable MFA manually using the guidance below."
+                ),
+                "guidance": guidance,
+                "setup_url": setup_url,
+            },
         }
 
     def _check_login_alerts(self) -> Dict[str, object]:
@@ -250,6 +356,196 @@ class BaseSocialMonitor(ABC):
             }
         }
 
+    def audit_account_security(self) -> Dict[str, object]:
+        """Run a comprehensive account security audit.
+
+        Combines 2FA/MFA status, login alerts, active sessions, recent security
+        checkup, HTTPS enforcement, and account verification into a single
+        security report with an overall risk rating and remediation guidance.
+
+        Returns:
+            Dict with keys:
+              - overall_risk (str): 'low' / 'medium' / 'high' / 'critical'
+              - checks (list): one dict per security check
+              - mfa (dict): 2FA/MFA status and setup guidance
+              - recommendations (list): actionable hardening steps
+        """
+        mfa_result = self._check_2fa_status()
+        checks = []
+        checks.append(("2FA / MFA", mfa_result))
+        checks.append(("Login alerts", self._check_login_alerts()))
+        checks.append(("Active sessions", self._check_active_sessions()))
+        checks.append(("Security checkup", self._check_recent_security_checkup()))
+        checks.append(("HTTPS / TLS", self._check_https_connection()))
+        checks.append(("Account verification", self._check_account_verification()))
+
+        formatted_checks = []
+        risk_score = 0
+        findings = []
+        for name, result in checks:
+            details = result.get("details", {}) or {}
+            if result.get("risk_detected"):
+                risk_score += 1
+                findings.append(name)
+            formatted_checks.append({
+                "check": name,
+                "risk_detected": result.get("risk_detected", False),
+                "details": details,
+            })
+
+        if risk_score >= 5:
+            overall_risk = "critical"
+        elif risk_score >= 3:
+            overall_risk = "high"
+        elif risk_score >= 2:
+            overall_risk = "medium"
+        else:
+            overall_risk = "low"
+
+        recommendations = []
+        if mfa_result.get("details", {}).get("mfa_enabled") is not True:
+            recommendations.append(
+                "Enable two-factor / multi-factor authentication (preferably "
+                "an authenticator app or security key, not SMS)."
+            )
+        recommendations.append(
+            "Review and remove any unrecognized active sessions or logged-in devices."
+        )
+        recommendations.append(
+            "Turn on login alerts so you are notified of new sign-ins."
+        )
+        recommendations.append(
+            "Run a security checkup on the platform and update your recovery email/phone."
+        )
+        recommendations.append(
+            "Use a strong, unique password and a password manager."
+        )
+
+        return {
+            "overall_risk": overall_risk,
+            "risk_score": risk_score,
+            "checks": formatted_checks,
+            "findings": findings,
+            "mfa": mfa_result,
+            "recommendations": recommendations,
+        }
+
+    def get_security_hardening_guide(self, platform: str = None) -> Dict[str, object]:
+        """Return platform-specific steps to secure/harden a social media account.
+
+        Covers MFA setup, privacy settings, login alerts, active-session review,
+        and third-party app access revocation. Based on official platform help
+        documentation (Facebook/Meta, X, LinkedIn, Reddit, Instagram).
+
+        Args:
+            platform: Platform name (instagram, twitter, linkedin, reddit,
+                      facebook, tiktok, youtube, discord).
+                      Defaults to this monitor's platform.
+
+        Returns:
+            Dict with keys: platform, steps (list of dicts), mfa_setup_url,
+            general_tips (list).
+        """
+        platform = (platform or getattr(self, "platform_name", "")).lower()
+        step_map = {
+            "instagram": [
+                {"step": 1, "action": "Enable two-factor authentication",
+                 "detail": "Accounts Center > Password and security > Two-factor authentication. Use an authenticator app and save backup codes."},
+                {"step": 2, "action": "Set account to private",
+                 "detail": "Settings > Privacy > Account privacy > Private account."},
+                {"step": 3, "action": "Review active sessions",
+                 "detail": "Accounts Center > Password and security > Where you're logged in. Log out unknown devices."},
+                {"step": 4, "action": "Remove third-party app access",
+                 "detail": "Settings > Apps and websites > Active. Remove apps you no longer use."},
+                {"step": 5, "action": "Enable login alerts",
+                 "detail": "Accounts Center > Password and security > Login alerts."},
+            ],
+            "twitter": [
+                {"step": 1, "action": "Enable two-factor authentication",
+                 "detail": "Settings and privacy > Security and account access > Security > Two-factor authentication. Use an authenticator app or security key."},
+                {"step": 2, "action": "Protect your posts",
+                 "detail": "Settings and privacy > Privacy and safety > Audience and tagging > Protect your posts."},
+                {"step": 3, "action": "Review active sessions",
+                 "detail": "Settings and privacy > Security and account access > Apps and sessions > Sessions. Log out unknown devices."},
+                {"step": 4, "action": "Revoke third-party app access",
+                 "detail": "Settings and privacy > Security and account access > Apps and sessions > Connected apps."},
+            ],
+            "linkedin": [
+                {"step": 1, "action": "Enable two-step verification",
+                 "detail": "Me > Settings & Privacy > Sign in & security > Two-step verification. Use an authenticator app."},
+                {"step": 2, "action": "Adjust profile visibility",
+                 "detail": "Settings & Privacy > Visibility. Control who can see your connections, profile, and activity."},
+                {"step": 3, "action": "Review active sessions",
+                 "detail": "Settings & Privacy > Sign in & security > Where you're signed in."},
+                {"step": 4, "action": "Manage third-party apps",
+                 "detail": "Settings & Privacy > Account > Permitted services."},
+            ],
+            "reddit": [
+                {"step": 1, "action": "Enable two-factor authentication",
+                 "detail": "User Settings > Safety > Use two factor authentication."},
+                {"step": 2, "action": "Review active sessions",
+                 "detail": "User Settings > Safety > Active sessions."},
+                {"step": 3, "action": "Adjust privacy",
+                 "detail": "User Settings > Privacy. Limit who can message you and view your profile."},
+            ],
+            "facebook": [
+                {"step": 1, "action": "Enable two-factor authentication",
+                 "detail": "Accounts Center > Password and security > Two-factor authentication. Use an authenticator app or security key."},
+                {"step": 2, "action": "Run Privacy Checkup",
+                 "detail": "Settings & privacy > Privacy Checkup. Limit who can see your posts, friends list, and contact info."},
+                {"step": 3, "action": "Review where you're logged in",
+                 "detail": "Accounts Center > Password and security > Where you're logged in. Log out unknown devices."},
+                {"step": 4, "action": "Remove third-party apps",
+                 "detail": "Settings > Apps and websites. Remove apps you no longer use."},
+                {"step": 5, "action": "Turn on login alerts",
+                 "detail": "Accounts Center > Password and security > Login alerts."},
+            ],
+            "tiktok": [
+                {"step": 1, "action": "Enable 2-step verification",
+                 "detail": "Settings and privacy > Security & permissions > 2-step verification."},
+                {"step": 2, "action": "Set account to private",
+                 "detail": "Settings and privacy > Privacy > Private account."},
+                {"step": 3, "action": "Review devices",
+                 "detail": "Settings and privacy > Security & permissions > Manage devices. Remove unknown devices."},
+                {"step": 4, "action": "Restrict direct messages",
+                 "detail": "Settings and privacy > Privacy > Direct messages. Limit who can message you."},
+            ],
+            "youtube": [
+                {"step": 1, "action": "Enable Google 2-Step Verification",
+                 "detail": "myaccount.google.com > Security > 2-Step Verification. Prefer passkeys or a security key."},
+                {"step": 2, "action": "Run Google Security Checkup",
+                 "detail": "myaccount.google.com/security-checkup. Review devices, third-party access, and recovery info."},
+                {"step": 3, "action": "Review channel permissions",
+                 "detail": "YouTube Studio > Settings > Permissions. Remove managers you don't recognize."},
+                {"step": 4, "action": "Hide subscriptions and saved playlists",
+                 "detail": "YouTube Settings > Privacy. Keep subscriptions and playlists private."},
+            ],
+            "discord": [
+                {"step": 1, "action": "Enable authenticator-app 2FA",
+                 "detail": "User Settings > My Account > Password and Authentication > Enable Authenticator App."},
+                {"step": 2, "action": "Lock down DMs and friend requests",
+                 "detail": "User Settings > Content & Social. Limit DMs from server members and who can add you as a friend."},
+                {"step": 3, "action": "Review authorized apps",
+                 "detail": "User Settings > Authorized Apps. Deauthorize apps you don't use."},
+                {"step": 4, "action": "Review logged-in devices",
+                 "detail": "User Settings > Devices. Log out unknown sessions."},
+            ],
+        }
+        steps = step_map.get(platform, [])
+        general_tips = [
+            "Use a unique, strong password for each social account (password manager recommended).",
+            "Prefer an authenticator app or hardware security key over SMS for 2FA.",
+            "Save 2FA backup codes in a secure, offline location.",
+            "Regularly review logged-in devices and revoke unknown sessions.",
+            "Limit who can see your posts, contacts, and personal details via privacy settings.",
+            "Be cautious of urgent DMs, short URLs, and credential requests — verify through another channel.",
+        ]
+        return {
+            "platform": platform,
+            "steps": steps,
+            "mfa_setup_url": MFA_SETUP_URLS.get(platform),
+            "general_tips": general_tips,
+        }
 
     @abstractmethod
     def audit_account(self) -> Dict[str, object]:
@@ -264,7 +560,7 @@ class BaseSocialMonitor(ABC):
         """Load previous follower/following state from file."""
         if self.state_file.exists():
             try:
-                with open(self.state_file, 'r') as f:
+                with open(self.state_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     return {
                         "followers": set(data.get("followers", [])),
@@ -282,7 +578,7 @@ class BaseSocialMonitor(ABC):
             "following": list(self.state["following"])
         }
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.state_file, 'w') as f:
+        with open(self.state_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2)
 
     def _get_bool_env(self, env_var: str, param_val: Optional[bool], default: bool) -> bool:
@@ -394,7 +690,7 @@ class BaseSocialMonitor(ABC):
         """Check if currently logged in to the platform."""
         pass
 
-    def scan_content(self, text: str, image_urls: List[str] = None) -> Dict[str, List[str]]:
+    def scan_content(self, text: str, image_urls: Optional[List[str]] = None) -> Dict[str, object]:
         """Scan content for threats using the content scanner.
         
         Returns:
@@ -419,7 +715,7 @@ class BaseSocialMonitor(ABC):
         
         return self.pii_detector.detect_all(text)
 
-    def scan_for_phishing(self, text: str, image_urls: List[str] = None) -> Dict[str, List[str]]:
+    def scan_for_phishing(self, text: str, image_urls: Optional[List[str]] = None) -> Dict[str, object]:
         """Scan content for phishing threats using the content scanner.
         
         Returns:
@@ -471,7 +767,61 @@ class ContentScanner:
         filtered_keywords = [kw.strip() for kw in all_keywords if kw.strip()]
         self.suspicious_text_patterns = [rf"(?i){re.escape(kw)}" for kw in filtered_keywords]
         
-        # Phishing-specific patterns
+        # Threat severity levels used when rating detected threats.
+        # critical: credential theft / account takeover / malware
+        # high: phishing links, investment/romance/job scams, impersonation
+        # medium: spam / engagement bait / suspicious links
+        # low: generic suspicious content
+        self.severity_map = {
+            "suspicious": "medium",
+            "phishing": "high",
+            "scam": "high",
+            "spam": "medium",
+        }
+
+        # Weighted phishing keyword categories for scoring-based classification.
+        # Each keyword maps to a weight; the sum of matched weights produces a
+        # phishing score that is compared against phishing_threshold to separate
+        # phishing attempts from legitimate (non-phishing) content.
+        # Weights reflect research into social media attack vectors:
+        # urgency, credential harvesting, money/reward lures, threats, and
+        # impersonation are strongest phishing indicators.
+        self.phishing_keyword_weights = {
+            "urgency": [
+                ("urgent", 12), ("immediate action", 14), ("account suspended", 16),
+                ("verify immediately", 16), ("security alert", 12), ("expires", 10),
+                ("act now", 11), ("limited time", 10), ("within 24 hours", 14),
+            ],
+            "credential": [
+                ("verify your account", 15), ("login", 8), ("password", 10),
+                ("confirm your identity", 14), ("update your password", 14),
+                ("secure login", 13), ("sign in", 6), ("credentials", 12),
+            ],
+            "money_reward": [
+                ("free money", 14), ("you won", 13), ("congratulations", 10),
+                ("prize", 10), ("reward", 9), ("cash app", 12), ("wire transfer", 13),
+                ("inheritance", 12), ("lottery winner", 14), ("double your money", 15),
+            ],
+            "threat": [
+                ("account will be deleted", 16), ("suspended", 13), ("blocked", 12),
+                ("unauthorized access", 14), ("security breach", 14), ("legal action", 12),
+                ("penalty", 10), ("arrest", 14),
+            ],
+            "impersonation": [
+                ("from support", 13), ("from security", 13), ("from admin", 12),
+                ("official notification", 12), ("instagram support", 14),
+                ("facebook support", 14), ("twitter support", 14),
+            ],
+            "suspicious_link": [
+                ("bit.ly", 11), ("tinyurl", 11), ("t.co", 10), ("shortlink", 10),
+                ("click here", 9), ("verify now", 13),
+            ],
+        }
+        # Score >= phishing_threshold => classified as phishing attempt.
+        # Below threshold => legitimate / non-phishing content.
+        self.phishing_threshold = 20
+
+        # Phishing-specific patterns (credential theft, fake logins, urgent lures)
         self.phishing_patterns = [
             # Urgent/threatening language
             r"(?i)(urgent|immediate action|account suspended|verify immediately|security alert)",
@@ -481,15 +831,48 @@ class ContentScanner:
             r"(?i)(login.*secure|secure.*login|account.*verify|verify.*account)",
             # Financial scams
             r"(?i)(wire transfer|funds transfer|inheritance|lottery winner|prize money)",
-            # Impersonation
+            # Impersonation (support/security/admin)
             r"(?i)(from.*support|from.*security|from.*admin|official.*notification)",
             # Too good to be true
             r"(?i)(you.*won|congratulations.*you|free.*gift|claim.*prize)",
         ]
-        
-        # Compile regex patterns
-        self.compiled_suspicious_patterns = [re.compile(pattern) for pattern in self.suspicious_text_patterns]
-        self.compiled_phishing_patterns = [re.compile(pattern) for pattern in self.phishing_patterns] if enable_phishing_detection else []
+
+        # Scam patterns (investment, crypto giveaway, romance, job, impersonation, marketplace)
+        # Each entry: (regex, severity)
+        self.scam_patterns = [
+            (r"(?i)(crypto.*giveaway|bitcoin.*giveaway|free.*crypto|send.*crypto)", "high"),
+            (r"(?i)(investment.*opportunity|double.*money|guaranteed.*return|passive.*income)", "high"),
+            (r"(?i)(romance|soulmate|true love|marry me|i love you)", "high"),
+            (r"(?i)(work from home|easy money|no experience required|onboarding fee)", "high"),
+            (r"(?i)(impersonat|pretending to be|posing as|fake account)", "high"),
+            (r"(?i)(marketplace|buy now|cheap.*iphone|counterfeit|replica)", "medium"),
+            (r"(?i)(money mule|cash app|venmo|paypal.*send|wire transfer)", "high"),
+        ]
+
+        # Spam patterns (engagement bait, brand collaboration, bot-like behavior)
+        self.spam_patterns = [
+            (r"(?i)(vote for me|can you vote|help me win)", "medium"),
+            (r"(?i)(is this you|i can.t believe|look at this|check this out)", "medium"),
+            (r"(?i)(brand collaboration|brand deal|sponsored post|ambassador|influencer)", "medium"),
+            (r"(?i)(follow for follow|sub for sub|like for like|team followback)", "medium"),
+            (r"(?i)(comment below|dm me|whatsapp|telegram.*me|text me)", "low"),
+        ]
+
+        # Compile regex patterns, pairing each with its severity level
+        self.compiled_suspicious_patterns = [
+            (re.compile(pattern), self.severity_map["suspicious"])
+            for pattern in self.suspicious_text_patterns
+        ]
+        self.compiled_phishing_patterns = [
+            (re.compile(pattern), self.severity_map["phishing"])
+            for pattern in self.phishing_patterns
+        ] if enable_phishing_detection else []
+        self.compiled_scam_patterns = [
+            (re.compile(pattern), severity) for pattern, severity in self.scam_patterns
+        ]
+        self.compiled_spam_patterns = [
+            (re.compile(pattern), severity) for pattern, severity in self.spam_patterns
+        ]
     
     def scan_image(self, image_path_or_url: str) -> List[str]:
         """Scan an image for known threats.
@@ -506,50 +889,164 @@ class ContentScanner:
         # TODO: Implement actual perceptual hashing
         return []
     
-    def scan_text(self, text: str) -> Dict[str, List[str]]:
-        """Scan text for suspicious patterns and phishing attempts.
-        
+    def scan_text(self, text: str) -> Dict[str, object]:
+        """Scan text for suspicious, phishing, scam, and spam patterns.
+
+        Each detected threat is rated with a severity level:
+        critical, high, medium, or low (based on research into social media
+        attack vectors: phishing, malvertising, investment/romance/job scams,
+        impersonation, and spam/engagement bait).
+
         Returns:
-            Dict with keys 'suspicious_threats' and 'phishing_threats'
+            Dict with keys 'suspicious_threats', 'phishing_threats',
+            'scam_threats', 'spam_threats' (each a list of
+            {"pattern": str, "severity": str}), plus 'overall_severity'
+            and 'threat_count'.
         """
-        suspicious_threats = []
-        phishing_threats = []
-        
-        # Check for suspicious patterns
-        for i, pattern in enumerate(self.compiled_suspicious_patterns):
-            if pattern.search(text):
-                suspicious_threats.append(f"suspicious_text_pattern_{i}")
-        
-        # Check for phishing patterns if enabled
-        if self.compiled_phishing_patterns:
-            for i, pattern in enumerate(self.compiled_phishing_patterns):
-                if pattern.search(text):
-                    phishing_threats.append(f"phishing_pattern_{i}")
-        
+        def _matches(compiled):
+            found = []
+            for regex, severity in compiled:
+                m = regex.search(text)
+                if m:
+                    found.append({"pattern": m.group(0), "severity": severity})
+            return found
+
+        suspicious_threats = _matches(self.compiled_suspicious_patterns)
+        phishing_threats = _matches(self.compiled_phishing_patterns)
+        scam_threats = _matches(self.compiled_scam_patterns)
+        spam_threats = _matches(self.compiled_spam_patterns)
+        emerging_threats = match_emerging_threats(text)
+        link_threats = [f for url in extract_urls(text) for f in analyze_url(url)]
+        for f in link_threats:
+            f.setdefault("pattern", f["url"])
+
+        all_threats = (suspicious_threats + phishing_threats + scam_threats
+                       + spam_threats + emerging_threats + link_threats)
+        overall_severity = self._rate_overall(all_threats)
+
         return {
             "suspicious_threats": suspicious_threats,
-            "phishing_threats": phishing_threats
+            "phishing_threats": phishing_threats,
+            "scam_threats": scam_threats,
+            "spam_threats": spam_threats,
+            "emerging_threats": emerging_threats,
+            "link_threats": link_threats,
+            "advice": sorted({t["advice"] for t in emerging_threats}),
+            "overall_severity": overall_severity,
+            "threat_count": len(all_threats),
         }
-    
-    def scan_post(self, post_text: str, image_urls: List[str] = None) -> Dict[str, List[str]]:
+
+    def _rate_overall(self, threats: List[Dict[str, object]]) -> str:
+        """Return the highest severity among detected threats ('none' if none)."""
+        rank = {"low": 0, "medium": 1, "high": 2, "critical": 3}
+        best = "low"
+        for threat in threats:
+            sev = str(threat.get("severity", "low"))
+            if rank.get(sev, 0) > rank.get(best, 0):
+                best = sev
+        return best if threats else "none"
+
+    def classify_phishing(self, text: str) -> Dict[str, object]:
+        """Classify text as phishing or non-phishing using a weighted keyword
+        scoring algorithm.
+
+        The algorithm sums weights of matched phishing keywords across categories
+        (urgency, credential harvesting, money/reward lures, threats,
+        impersonation, suspicious links). If the total score meets or exceeds
+        ``self.phishing_threshold`` the content is classified as a phishing
+        attempt; otherwise it is treated as legitimate / non-phishing.
+
+        Returns:
+            Dict with keys:
+              - is_phishing (bool): True if score >= threshold
+              - score (float): total weighted score
+              - threshold (float): the classification threshold
+              - confidence (str): 'low' / 'medium' / 'high' based on score
+              - categories (dict): category -> list of matched keywords
+              - matched_keywords (list): all matched (keyword, weight, category)
+              - reason (str): human-readable explanation
+        """
+        lowered = text.lower()
+        matched_keywords = []
+        categories = {cat: [] for cat in self.phishing_keyword_weights}
+        total_score = 0.0
+
+        for category, entries in self.phishing_keyword_weights.items():
+            for keyword, weight in entries:
+                # Word-boundary match so "t.co" doesn't fire inside "at.com"
+                if re.search(rf"(?<!\w){re.escape(keyword)}(?!\w)", lowered):
+                    matched_keywords.append({
+                        "keyword": keyword,
+                        "weight": weight,
+                        "category": category,
+                    })
+                    categories[category].append(keyword)
+                    total_score += weight
+
+        is_phishing = total_score >= self.phishing_threshold
+        if total_score >= 40:
+            confidence = "high"
+        elif total_score >= self.phishing_threshold:
+            confidence = "medium"
+        elif total_score > 0:
+            confidence = "low"
+        else:
+            confidence = "none"
+
+        if is_phishing:
+            reason = (
+                f"Phishing attempt detected (score {total_score} >= "
+                f"threshold {self.phishing_threshold}). Matched {len(matched_keywords)} "
+                f"phishing indicator(s) across {sum(1 for v in categories.values() if v)} category(ies)."
+            )
+        else:
+            reason = (
+                f"Not classified as phishing (score {total_score} < "
+                f"threshold {self.phishing_threshold}). No sufficient phishing indicators."
+            )
+
+        return {
+            "is_phishing": is_phishing,
+            "score": total_score,
+            "threshold": self.phishing_threshold,
+            "confidence": confidence,
+            "categories": categories,
+            "matched_keywords": matched_keywords,
+            "reason": reason,
+        }
+
+    def scan_post(self, post_text: str, image_urls: Optional[List[str]] = None) -> Dict[str, object]:
         """Scan a complete post (text and images) for threats.
         
         Returns:
-            Dict with keys 'text_threats' and 'image_threats'
-            where each contains dicts with 'suspicious' and 'phishing' subkeys
+            Dict with keys:
+              - text_threats (list): flat list of {"category", "pattern",
+                "severity"} dicts; empty when nothing matched, so callers
+                can test it for truthiness
+              - image_threats (list): matched image threat identifiers
+              - text_breakdown (dict): full per-category result of scan_text
+              - overall_severity (str): highest severity, or 'none'
         """
         if image_urls is None:
             image_urls = []
-            
+
         text_results = self.scan_text(post_text)
+        text_threats = [
+            {"category": category.replace("_threats", ""), **threat}
+            for category in ("suspicious_threats", "phishing_threats",
+                             "scam_threats", "spam_threats",
+                             "emerging_threats", "link_threats")
+            for threat in text_results[category]
+        ]
         image_threats = []
-        
         for url in image_urls:
             image_threats.extend(self.scan_image(url))
-        
+
         return {
-            "text_threats": text_results,
-            "image_threats": image_threats
+            "text_threats": text_threats,
+            "image_threats": image_threats,
+            "text_breakdown": text_results,
+            "overall_severity": text_results["overall_severity"],
         }
 
 
@@ -784,5 +1281,5 @@ class AIEvaluator:
 #       threats = scanner.scan_post(tweet.text, tweet.media_urls)
 #       pii_matches = pii_detector.detect_all(tweet.text)
 #       se_risk = ai_evaluator.evaluate(tweet.text)
-#       if threats["text_threats"]["suspicious_threats"] or threats["text_threats"]["phishing_threats"] or threats["image_threats"] or any(pii_matches.values()) or se_risk["score"] > 50:
+#       if threats["text_threats"] or threats["image_threats"] or any(pii_matches.values()) or se_risk["score"] > 50:
 #           # Handle threat detection

@@ -3,615 +3,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>social-safe - Social Media Privacy Protection</title>
+    <title>social-safe — Social media privacy protection</title>
     <style>
         :root {
-            --primary: #6a11cb;
-            --primary-dark: #5a0db2;
-            --secondary: #2575fc;
-            --light: #f8f9fa;
-            --dark: #2c3e50;
-            --gray: #6c757d;
-            --success: #28a745;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --info: #17a2b8;
+            color-scheme: dark;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #101827;
+            color: #edf2f7;
+            font-synthesis: none;
+            text-rendering: optimizeLegibility;
+            --muted: #a9b6c8;
+            --line: #28374c;
+            --accent: #73e0bd;
+            --bg-card: #0b1220;
         }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.7;
-            color: var(--dark);
-            background-color: #fafafa;
-        }
-        a {
-            color: var(--primary);
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            padding: 3rem 2rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 20%);
-            animation: spin 20s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .logo {
-            display: inline-block;
-            background: rgba(255,255,255,0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 50%;
-            margin-bottom: 1rem;
-            font-size: 2rem;
-        }
-        h1 {
-            font-size: 2.8rem;
-            margin-bottom: 0.5rem;
-        }
-        .tagline {
-            font-size: 1.3rem;
-            opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        nav {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            padding: 1rem;
-        }
-        nav ul {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-            list-style: none;
-        }
-        nav a {
-            color: white;
-            font-weight: 500;
-            padding: 0.5rem 0;
-            border-bottom: 2px solid transparent;
-            transition: border-color 0.3s;
-        }
-        nav a:hover {
-            border-color: white;
-        }
-        section {
-            background: white;
-            margin: 2rem auto;
-            max-width: 960px;
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-        h2 {
-            color: var(--dark);
-            border-bottom: 3px solid var(--primary);
-            padding-bottom: 0.75rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        h2::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            background: var(--primary);
-            border-radius: 50%;
-        }
-        .platforms {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-        .platform {
-            background: var(--light);
-            border-radius: 10px;
-            padding: 1.5rem;
-            border: 1px solid #eee;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .platform:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-        }
-        .platform-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-        .platform h3 {
-            color: var(--primary);
-            margin-bottom: 0.75rem;
-            text-align: center;
-        }
-        .platform p {
-            color: var(--gray);
-            font-size: 0.9rem;
-            text-align: center;
-        }
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-        .feature {
-            background: var(--light);
-            border-radius: 10px;
-            padding: 1.5rem;
-            transition: transform 0.3s, box-shadow 0.3s;
-            border: 1px solid #eee;
-        }
-        .feature:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-        }
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            display: block;
-        }
-        .feature h3 {
-            color: var(--primary);
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .feature p {
-            color: var(--gray);
-        }
-        .installation, .usage {
-            background: #f0f8ff;
-            border-left: 4px solid var(--primary);
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            border-radius: 0 8px 8px 0;
-        }
-        .usage {
-            background: #fff8f0;
-            border-left-color: var(--secondary);
-        }
-        .audit-section {
-            background: #f0fff8;
-            border-left: 4px solid var(--success);
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            border-radius: 0 8px 8px 0;
-        }
-        pre {
-            background: #f8f9fa;
-            padding: 1.25rem;
-            border-radius: 8px;
-            overflow-x: auto;
-            font-size: 0.9rem;
-            border: 1px solid #eee;
-        }
-        code {
-            background: #f1f3f4;
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-            font-family: 'Courier New', Courier, monospace;
-        }
-        .btn {
-            display: inline-block;
-            background: var(--primary);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: all 0.3s;
-            font-size: 0.95rem;
-        }
-        .btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(106, 17, 203, 0.4);
-        }
-        .btn-secondary {
-            background: var(--gray);
-            color: white;
-        }
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-        .btn-outline {
-            border: 2px solid var(--primary);
-            background: transparent;
-            color: var(--primary);
-        }
-        .btn-outline:hover {
-            background: var(--primary);
-            color: white;
-        }
-        .btn-info {
-            background: var(--info);
-            color: white;
-        }
-        .btn-info:hover {
-            background: #138496;
-        }
-        .steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-        .step {
-            background: var(--light);
-            border-radius: 10px;
-            padding: 1.5rem;
-            text-align: center;
-            border: 1px solid #eee;
-            position: relative;
-        }
-        .step-number {
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--primary);
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-center;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-        .step h3 {
-            color: var(--primary);
-            margin: 1.5rem 0 0.5rem;
-        }
-        .step p {
-            color: var(--gray);
-            font-size: 0.94rem;
-        }
-        .env-vars {
-            background: var(--light);
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-        }
-        .env-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-        .env-table th,
-        .env-table td {
-            padding: 0.75rem 1rem;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        .env-table th {
-            background: #f1f3f4;
-            font-weight: 600;
-            color: var(--dark);
-        }
-        .env-table tr:hover {
-            background: #f8f9fa;
-        }
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.6rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .badge-success {
-            background: #d4edda;
-            color: #155724;
-        }
-        .badge-warning {
-            background: #fff3cd;
-            color: #856404;
-        }
-        .badge-info {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-        .footer {
-            text-align: center;
-            padding: 2.5rem;
-            color: var(--gray);
-            font-size: 0.9rem;
-            border-top: 1px solid #eee;
-            margin-top: 3rem;
-        }
-        .footer a {
-            color: var(--primary);
-            margin: 0 0.5rem;
-        }
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2.2rem;
-            }
-            .tagline {
-                font-size: 1.1rem;
-            }
-            nav ul {
-                flex-direction: column;
-                gap: 0.5rem;
-                align-items: center;
-            }
-            .steps {
-                grid-template-columns: 1fr;
-            }
-            .platforms {
-                grid-template-columns: 1fr;
-            }
-        }
-        .copy-btn {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            background: rgba(0,0,0,0.5);
-            color: white;
-            border: none;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-        }
-        .copy-btn:hover {
-            opacity: 1;
-        }
-        .code-wrapper {
-            position: relative;
-        }
-        .audit-badge {
-            background: #e2e3e5;
-            color: #41464b;
-            font-size: 0.8rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            margin-left: 0.5rem;
+        * { box-sizing: border-box; }
+        body { margin: 0; min-width: 320px; }
+        a { color: inherit; text-decoration: none; }
+        .wrap { width: min(1080px, calc(100% - 40px)); margin: 0 auto; }
+        header { padding: 24px 0; border-bottom: 1px solid var(--line); }
+        nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; }
+        .brand { flex: 0 0 auto; font-size: 1.05rem; font-weight: 750; letter-spacing: -.03em; }
+        .nav-links { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 22px; color: var(--muted); font-size: .92rem; }
+        .nav-links a { text-decoration: none; }
+        .nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--accent); }
+        main { padding: 76px 0 64px; }
+        .hero { max-width: 780px; }
+        .eyebrow { color: var(--accent); font-size: .78rem; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; margin-bottom: 8px; display: block; }
+        h1 { margin: 18px 0; max-width: 760px; font-size: clamp(2.7rem, 7vw, 5.5rem); line-height: .99; letter-spacing: -.065em; }
+        .lead { max-width: 650px; color: var(--muted); font-size: clamp(1.05rem, 2vw, 1.25rem); line-height: 1.7; margin-bottom: 30px; }
+        .actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 30px 0 0; }
+        .button { display: inline-block; padding: 12px 17px; border: 1px solid var(--line); border-radius: 8px; font-weight: 700; text-decoration: none; font-size: .92rem; }
+        .button-primary { border-color: var(--accent); background: var(--accent); color: #10231f; }
+        .button:hover { transform: translateY(-1px); }
+        section { padding: 48px 0; border-top: 1px solid var(--line); }
+        h2 { margin: 0 0 12px; font-size: 1.7rem; letter-spacing: -.035em; color: #edf2f7; }
+        .section-lead { max-width: 670px; margin: 0 0 24px; color: var(--muted); line-height: 1.65; }
+        .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+        .feature { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-card); }
+        .feature h3 { margin: 0 0 9px; font-size: 1rem; color: #edf2f7; }
+        .feature p { margin: 0; color: var(--muted); font-size: .92rem; line-height: 1.6; }
+        .feature-icon { font-size: 1.5rem; margin-bottom: 8px; display: block; color: var(--accent); }
+        .platforms-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+        .platform { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-card); }
+        .platform h3 { margin: 0 0 9px; font-size: 1rem; color: #edf2f7; }
+        .platform p { margin: 0; color: var(--muted); font-size: .92rem; line-height: 1.6; }
+        .platform-icon { font-size: 1.5rem; margin-bottom: 8px; display: block; color: var(--accent); }
+        table { width: 100%; margin: 16px 0; border-collapse: collapse; }
+        th, td { padding: 8px; border-bottom: 1px solid var(--line); text-align: left; }
+        th { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .88rem; }
+        td { color: #edf2f7; font-size: .92rem; }
+        tr:hover td { background: #131f30; }
+        pre { margin: 16px 0; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: #0b1220; color: #d9e5f2; font: .92rem/1.8 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-x: auto; }
+        code { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .92rem; }
+        .code-wrapper { position: relative; margin: 12px 0; }
+        .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.08); color: #edf2f7; border: 1px solid var(--line); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: .75rem; opacity: 0.6; }
+        .copy-btn:hover { opacity: 1; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .75rem; font-weight: 700; border: 1px solid var(--line); color: var(--muted); }
+        .badge-critical { border-color: #f87171; color: #fca5a5; }
+        .badge-high { border-color: #fb923c; color: #fdba74; }
+        .badge-medium { border-color: #fbbf24; color: #fde047; }
+        .badge-low { border-color: #a3e635; color: #bef264; }
+        .note { max-width: 780px; color: var(--muted); font-size: .9rem; line-height: 1.6; }
+        .warning { padding: 14px 16px; border-left: 3px solid var(--accent); background: #0b1220; margin: 16px 0; }
+        .tip { padding: 14px 16px; border-left: 3px solid var(--line); background: #0b1220; margin: 16px 0; }
+        .audit-card { padding: 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-card); }
+        .audit-card h3 { margin: 0 0 9px; font-size: 1rem; color: #edf2f7; }
+        .audit-card ul { color: var(--muted); font-size: .92rem; line-height: 1.7; padding-left: 20px; margin: 8px 0 0; }
+        .audit-card li { margin-bottom: 6px; }
+        footer { padding: 24px 0 34px; border-top: 1px solid var(--line); color: var(--muted); font-size: .88rem; }
+        footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+        footer a { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+        @media (max-width: 700px) {
+            header { padding: 18px 0; }
+            nav { align-items: flex-start; }
+            .nav-links { gap: 13px; font-size: .85rem; }
+            main { padding-top: 55px; }
+            .grid, .platforms-grid { grid-template-columns: minmax(0, 1fr); }
+            .wrap { width: min(100% - 32px, 1080px); }
+            table { font-size: .88rem; }
         }
     </style>
 </head>
 <body>
     <header>
-        <div class="logo">🔒</div>
-        <h1>social-safe</h1>
-        <p class="tagline">Multi-platform social media privacy protection and monitoring</p>
+        <div class="wrap">
+            <nav>
+                <div class="brand">🔒 social-safe</div>
+                <div class="nav-links">
+                    <a href="#platforms">Platforms</a>
+                    <a href="#features">Features</a>
+                    <a href="#threats">Threat Detection</a>
+                    <a href="#installation">Installation</a>
+                    <a href="#usage">Usage</a>
+                    <a href="#how-it-works">How It Works</a>
+                    <a href="https://github.com/PyMite6941/social-safe" target="_blank">GitHub</a>
+                </div>
+            </nav>
+        </div>
     </header>
 
-    <nav>
-        <ul>
-            <li><a href="#platforms">Platforms</a></li>
-            <li><a href="#features">Features</a></li>
-            <li><a href="#installation">Installation</a></li>
-            <li><a href="#usage">Usage</a></li>
-            <li><a href="#how-it-works">How It Works</a></li>
-            <li><a href="#audit">Security Audit</a></li>
-            <li><a href="#faq">FAQ</a></li>
-        </ul>
-    </nav>
-
     <section id="overview">
-        <h2><span>🛡️</span> Overview</h2>
-        <p>
-            social-safe is a comprehensive privacy protection suite that monitors multiple social media platforms 
-            (Instagram, Twitter/X, LinkedIn, and more) to detect suspicious changes, audit account security, 
-            scan for threats in posts/DMs, and alert you via email when actionable changes are detected.
-        </p>
-        <p>
-            Unlike native platform controls, social-safe provides active monitoring, OSINT capabilities, and 
-            automated auditing that works continuously to keep you informed about your accounts' safety.
-        </p>
-        <div style="text-align: center; margin: 2rem 0;">
-            <a href="#installation" class="btn">Get Started</a>
-            <a href="https://github.com/PyMite6941/social-safe" class="btn btn-outline">View on GitHub</a>
+        <div class="wrap">
+            <h2><span style="color:var(--accent); margin-right:8px;">🛡️</span>Overview</h2>
+            <p class="section-lead">social-safe is a privacy protection suite that monitors multiple social media platforms (Instagram, Twitter/X, LinkedIn, Reddit, and more) to detect suspicious changes, audit account security, scan for threats in posts and DMs, and alert you via email when actionable changes are detected.</p>
+            <p class="section-lead">Unlike native platform controls, social-safe provides active monitoring, OSINT capabilities, and automated auditing that works continuously to keep you informed about your accounts' safety.</p>
         </div>
     </section>
 
     <section id="platforms">
-        <h2><span>🌐</span> Supported Platforms</h2>
-        <p>social-safe supports monitoring and auditing for major social media platforms with platform-specific adapters:</p>
-        <div class="platforms">
-            <div class="platform">
-                <div class="platform-icon">📷</div>
-                <h3>Instagram</h3>
-                <p>Follower/following monitoring, privacy setting alerts, new follower risk assessment, post/DM content scanning, phishing detection, AI social engineering evaluation, PII detection</p>
-            </div>
-            <div class="platform">
-                <div class="platform-icon">🐦</div>
-                <h3>Twitter/X</h3>
-                <p>Follower/following monitoring, privacy setting alerts, new follower risk assessment, tweet/DM content scanning, phishing detection, AI social engineering evaluation, PII detection</p>
-            </div>
-            <div class="platform">
-                <div class="platform-icon">🤖</div>
-                <h3>Reddit</h3>
-                <p>Follower/following (subscribed subreddits) monitoring, privacy setting alerts, new follower/risk assessment, post/comment content scanning, phishing detection, AI social engineering evaluation, PII detection</p>
-            </div>
-            <div class="platform">
-                <div class="platform-icon">💼</div>
-                <h3>LinkedIn</h3>
-                <p>Connection/follower monitoring, privacy setting alerts, new connection/follower risk assessment, post/article content scanning, phishing detection, AI social engineering evaluation, PII detection (uses Playwright for web automation)</p>
-            </div>
-            <div class="platform">
-                <div class="platform-icon">📘</div>
-                <h3>Facebook (Planned)</h3>
-                <p>Friend/follower monitoring, privacy setting alerts, new friend/risk assessment, post/message/content scanning (requires Facebook Developer App or Playwright automation)</p>
-            </div>
-            <div class="platform">
-                <div class="platform-icon">🔧</div>
-                <h3>Extensible</h3>
-                <p>Easy to add new platforms using the base adapter class or PlaywrightBase - TikTok, YouTube, Discord, etc.</p>
+        <div class="wrap">
+            <h2><span style="color:var(--accent); margin-right:8px;">🌐</span>Supported Platforms</h2>
+            <p class="section-lead">social-safe supports monitoring and auditing for major social media platforms with platform-specific adapters:</p>
+            <div class="platforms-grid">
+                <div class="platform">
+                    <span class="platform-icon">📷</span>
+                    <h3>Instagram</h3>
+                    <p>Follower/following monitoring, privacy setting alerts, new follower risk assessment, post/DM content scanning, phishing detection, AI social engineering evaluation, PII detection.</p>
+                </div>
+                <div class="platform">
+                    <span class="platform-icon">🐦</span>
+                    <h3>Twitter/X</h3>
+                    <p>Follower/following monitoring, privacy setting alerts, new follower risk assessment, tweet/DM content scanning, phishing detection, AI social engineering evaluation, PII detection.</p>
+                </div>
+                <div class="platform">
+                    <span class="platform-icon">🤖</span>
+                    <h3>Reddit</h3>
+                    <p>Subscribed subreddit monitoring, privacy alerts, post/comment content scanning, phishing detection, AI social engineering evaluation, PII detection.</p>
+                </div>
+                <div class="platform">
+                    <span class="platform-icon">💼</span>
+                    <h3>LinkedIn</h3>
+                    <p>Connection monitoring, privacy alerts, new connection risk assessment, post/article scanning, phishing detection, PII detection (uses Playwright for web automation).</p>
+                </div>
+                <div class="platform">
+                    <span class="platform-icon">📘</span>
+                    <h3>Facebook</h3>
+                    <p>Friend monitoring, privacy alerts, post scanning, phishing detection, PII detection (uses Playwright for web automation). #1 platform for scam losses per FTC.</p>
+                </div>
+                <div class="platform">
+                    <span class="platform-icon">🎵</span>
+                    <h3>TikTok</h3>
+                    <p>Follower/following monitoring, post/caption content scanning, phishing detection, PII detection (uses Playwright for web automation).</p>
+                </div>
+                <div class="platform">
+                    <span class="platform-icon">▶️</span>
+                    <h3>YouTube</h3>
+                    <p>Subscriber monitoring, video/comment content scanning, phishing detection, PII detection (uses Playwright for web automation).</p>
+                </div>
+                <div class="platform">
+                    <span class="platform-icon">💬</span>
+                    <h3>Discord</h3>
+                    <p>Friend monitoring, DM content scanning for scams and PII, phishing detection (uses Playwright for web automation).</p>
+                </div>
+                <div class="platform">
+                    <span class="platform-icon">🔧</span>
+                    <h3>Extensible</h3>
+                    <p>Add new platforms using the base adapter class or PlaywrightBase — Snapchat, Threads, WhatsApp, etc.</p>
+                </div>
             </div>
         </div>
     </section>
 
     <section id="features">
-        <h2><span>✨</span> Key Features</h2>
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">👥</div>
-                <h3>Follower/Connection Monitoring</h3>
-                <p>Detects new connections, lost connections, and changes since last check with customizable thresholds for each platform.</p>
+        <div class="wrap">
+            <h2><span style="color:var(--accent); margin-right:8px;">✨</span>Key Features</h2>
+            <p class="section-lead">Everything you need to keep your social media accounts safe, in one package.</p>
+            <div class="grid">
+                <div class="feature">
+                    <span class="feature-icon">👥</span>
+                    <h3>Follower/Connection Monitoring</h3>
+                    <p>Detects new connections, lost connections, and changes since last check with customizable thresholds for each platform.</p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🔒</span>
+                    <h3>Privacy Setting Alerts</h3>
+                    <p>Notified if your account privacy settings change unexpectedly (private ↔ public).</p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🕵️‍♂️</span>
+                    <h3>Privacy &amp; Risk Audit</h3>
+                    <p>Scans new connections for risky characteristics: zero posts, zero followers, high following/follower ratio.</p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">📧</span>
+                    <h3>Email Alerts</h3>
+                    <p>Sends detailed email alerts when thresholds are exceeded, risks are detected, or security issues are found.</p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🔍</span>
+                    <h3>OSINT &amp; Threat Detection</h3>
+                    <p>Scans posts and DMs for scams, spam, phishing, and PII leaks — every threat rated by severity.</p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">⚙️</span>
+                    <h3>Highly Customizable</h3>
+                    <p>Configure thresholds, monitored items, audit checks, and OSINT patterns via environment variables.</p>
+                </div>
             </div>
-            <div class="feature">
-                <div class="feature-icon">🔒</div>
-                <h3>Privacy Setting Alerts</h3>
-                <p>Gets notified if your account privacy settings change unexpectedly (private ↔ public, protected ↔ unprotected).</p>
+        </div>
+    </section>
+
+    <section id="threats">
+        <div class="wrap">
+            <h2><span style="color:var(--accent); margin-right:8px;">🔍</span>Threat Detection &amp; Severity Rating</h2>
+            <p class="section-lead">social-safe scans posts, comments, and DMs across platforms for social media attacks — phishing, scams, spam, and suspicious content. Every detected threat is rated by severity.</p>
+
+            <div class="grid" style="margin-top: 24px;">
+                <div class="feature">
+                    <span class="feature-icon">🎣</span>
+                    <h3>Phishing</h3>
+                    <p class="badge badge-high">high</p>
+                    <p style="margin-top:8px; color:var(--muted); font-size:.88rem;">Fake login pages, "account suspended" links, credential harvesters, short URLs (bit.ly, t.co).</p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">💸</span>
+                    <h3>Scams</h3>
+                    <p class="badge badge-high">high</p>
+                    <p style="margin-top:8px; color:var(--muted); font-size:.88rem;">Investment/crypto giveaways, romance scams, fake job offers, impersonation, marketplace fraud.</p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">📣</span>
+                    <h3>Spam</h3>
+                    <p class="badge badge-medium">medium</p>
+                    <p style="margin-top:8px; color:var(--muted); font-size:.88rem;">Engagement bait ("vote for me"), brand collaboration DMs, follow-for-follow, bot-like behavior.</p>
+                </div>
             </div>
-            <div class="feature">
-                <div class="feature-icon">🕵️‍♂️</div>
-                <h3>Privacy & Risk Audit</h3>
-                <p>Scans new connections for risky characteristics: zero posts, zero followers, high following/follower ratio, and more.</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">📧</div>
-                <h3>Email Alerts</h3>
-                <p>Sends detailed email alerts when thresholds are exceeded, risks are detected, or security issues are found.</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🔍</div>
-                <h3>OSINT & Threat Detection</h3>
-                <p>Scans posts and DMs for suspicious content (malicious links, known threat patterns) and PII (personal information leaks).</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">⚙️</div>
-                <h3>Highly Customizable</h3>
-                <p>Configure everything via environment variables: thresholds, monitored items, audit checks, OSINT patterns, etc.</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🔐</div>
-                <h3>Secure by Design</h3>
-                <p>Never stores passwords; uses environment variables and platform-specific app passwords only.</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🔄</div>
-                <h3>Multi-Platform</h3>
-                <p>Monitor multiple social media accounts from a single interface with platform-specific configuration.</p>
+
+            <table style="margin-top: 24px;">
+                <thead>
+                    <tr><th>Severity</th><th>Meaning</th><th>Examples</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><span class="badge badge-critical">critical</span></td><td>Credential theft, account takeover, malware</td><td>Fake login, stolen session, malicious file</td><td>Act immediately</td></tr>
+                    <tr><td><span class="badge badge-high">high</span></td><td>Phishing links, investment/romance/job scams, impersonation</td><td>"Verify now" link, crypto giveaway, fake recruiter</td><td>Act promptly</td></tr>
+                    <tr><td><span class="badge badge-medium">medium</span></td><td>Spam, engagement bait, suspicious links</td><td>"Vote for me", brand collab DM, follow-for-follow</td><td>Review</td></tr>
+                    <tr><td><span class="badge badge-low">low</span></td><td>Generic suspicious content</td><td>Unfamiliar phrasing, low-signal post</td><td>Monitor</td></tr>
+                </tbody>
+            </table>
+
+            <div class="note" style="margin-top: 24px;">
+                Detection is pattern-based and best-effort; it can produce false positives or miss novel formats, and is not a substitute for platform security controls. Content scanning and phishing detection are disabled by default — enable them via <code>ENABLE_CONTENT_SCANNING</code> and <code>ENABLE_PHISHING_DETECTION</code> in your <code>.env</code>.
             </div>
         </div>
     </section>
 
     <section id="audit">
-        <h2><span>🔐</span> Security Audit Features</h2>
-        <div class="audit-section">
-            <h3>First-Line Defense: Encryption & Security Auditing</h3>
-            <p>As requested, the first section of the audit focuses on verifying that applications are properly securing your data:</p>
-            <ul>
-                <li>Checks for end-to-end encryption in direct messages where available</li>
-                <li>Verifies that platforms are using secure connections (HTTPS/TLS)</li>
-                <li>Monitors for known security vulnerabilities in platform implementations</li>
-                <li>Checks for proper implementation of security features like two-factor authentication</li>
-            </ul>
-        </div>
-
-        <div class="features" style="margin-top: 2rem;">
-            <div class="feature">
-                <div class="feature-icon">🔐</div>
-                <h3>Encryption Audit</h3>
-                <p>Verifies that applications are using proper encryption for data in transit and at rest where possible.</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🕵️‍♂️</div>
-                <h3>PII Scanning in Posts/DMs</h3>
-                <p>Scans your posts and direct messages for personally identifiable information (PII) that could compromise your privacy:</p>
+        <div class="wrap">
+            <h2><span style="color:var(--accent); margin-right:8px;">🔐</span>Security Audit</h2>
+            <div class="audit-card">
+                <h3>First-Line Defense: Encryption &amp; Security Auditing</h3>
                 <ul>
-                    <li>Email addresses, phone numbers, physical addresses</li>
-                    <li>Social Security Numbers, ID numbers</li>
-                    <li>Financial information (credit cards, bank accounts)</li>
-                    <li>Dates of birth, passport numbers</li>
+                    <li>Checks for end-to-end encryption in direct messages where available</li>
+                    <li>Verifies platforms use secure connections (HTTPS/TLS)</li>
+                    <li>Monitors for known security vulnerabilities in platform implementations</li>
+                    <li>Checks two-factor authentication and login alerts</li>
                 </ul>
             </div>
-            <div class="feature">
-                <div class="feature-icon">🧪</div>
-                <h3>OSINT Threat Detection</h3>
-                <p>Scans content for known threats and suspicious patterns:</p>
-                <ul>
-                    <li>Malicious links and phishing attempts</li>
-                    <li>Known threat patterns (like the "Mr. Beast image" hacks mentioned)</li>
-                    <li>Suspicious text patterns indicating scams or social engineering</li>
-                    <li>Known malicious image hashes</li>
-                </ul>
+            <div class="grid" style="margin-top: 24px;">
+                <div class="feature">
+                    <span class="feature-icon">🔐</span>
+                    <h3>Encryption Audit</h3>
+                    <p>Verifies applications use proper encryption for data in transit and at rest where possible.</p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🕵️‍♂️</span>
+                    <h3>PII Scanning in Posts/DMs</h3>
+                    <p>Scans posts and direct messages for personally identifiable information (emails, phones, SSNs, financial info, IDs).</p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🧪</span>
+                    <h3>OSINT Threat Detection</h3>
+                    <p>Scans content for malicious links, phishing attempts, known threat patterns, and suspicious text indicating scams or social engineering.</p>
+                </div>
             </div>
         </div>
     </section>
 
     <section id="installation">
-        <h2><span>📦</span> Installation</h2>
-        <div class="installation">
-            <h3>From GitHub (Recommended)</h3>
+        <div class="wrap">
+            <h2><span style="color:var(--accent); margin-right:8px;">📦</span>Installation</h2>
             <div class="code-wrapper">
                 <pre><code>pip install git+https://github.com/PyMite6941/social-safe.git</code></pre>
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
             </div>
-            <p>Or for development:</p>
+            <p class="note" style="margin-top:8px;">Or for development:</p>
             <div class="code-wrapper">
                 <pre><code>git clone https://github.com/PyMite6941/social-safe.git
 cd social-safe
 pip install -e .</code></pre>
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
             </div>
-        </div>
-        <div class="usage">
-            <h3>Node.js Wrapper (Optional)</h3>
-            <p>Provides a <code>socialsafe</code> command that wraps the Python package.</p>
-            <div class="code-wrapper">
-                <pre><code>npm install -g socialsafe-wrapper</code></pre>
-                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <div class="tip" style="margin-top: 24px;">
+                <strong>Node.js launcher (optional):</strong> a <code>socialsafe</code> command for Windows, macOS, and Linux that finds your Python install and runs the package.
+                <div class="code-wrapper" style="margin-top:12px;">
+                    <pre><code>npm install -g @pymite6941/socialsafe</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <p class="note" style="margin-top:8px; font-size:.88rem;">Requires the Python package to be installed first.</p>
             </div>
-            <p><small>Requires the Python package to be installed first.</small></p>
         </div>
     </section>
 
     <section id="usage">
-        <h2><span>▶️</span> Usage</h2>
-        <p>Set environment variables (copy <code>.env.example</code> to <code>.env</code> and fill):</p>
-        <div class="code-wrapper">
-            <pre><code># Instagram (required for Instagram monitoring)
+        <div class="wrap">
+            <h2><span style="color:var(--accent); margin-right:8px;">▶️</span>Usage</h2>
+            <p class="section-lead">Set environment variables (copy <code>.env.example</code> to <code>.env</code> and fill):</p>
+            <div class="code-wrapper">
+<pre><code># Instagram (required for Instagram monitoring)
 export IG_USERNAME="your_instagram_handle"
 export IG_PASSWORD="your_app_specific_password"
-
-# Twitter/X (optional)
-export TWITTER_USERNAME="your_twitter_handle"
-export TWITTER_BEARER_TOKEN="your_twitter_bearer_token"
-# OR
-export TWITTER_API_KEY="your_api_key"
-export TWITTER_API_SECRET="your_api_secret"
-export TWITTER_ACCESS_TOKEN="your_access_token"
-export TWITTER_ACCESS_TOKEN_SECRET="your_access_token_secret"
-
-# LinkedIn (optional - requires Playwright)
-export LINKEDIN_USERNAME="your_linkedin_handle"
-export LINKEDIN_PASSWORD="your_linkedin_password"  # Optional for public data viewing
 
 # Alert configuration (required)
 export ALERT_EMAIL="your_alert@example.com"
@@ -619,162 +320,77 @@ export ALERT_APP_PASSWORD="your_smtp_app_password"
 export SMTP_SERVER="smtp.gmail.com"
 export SMTP_PORT="465"
 
-# Monitoring configuration
-export MONITOR_FOLLOWERS="true"
-export MONITOR_FOLLOWING="true"
-export ALERT_THRESHOLD_NEW_FOLLOWERS="10"
-export ALERT_THRESHOLD_LOST_FOLLOWERS="10"
-export EXPECTED_PRIVACY="private"
+# Threat detection (optional - disabled by default)
+export ENABLE_CONTENT_SCANNING="true"
+export ENABLE_PHISHING_DETECTION="true"
+export ENABLE_PII_DETECTION="true"
+export CONTENT_SCAN_KEYWORDS="free nft,click here for,urgent action required,mr beast,crypto giveaway,verify your account"
 
 # Audit configuration
 export AUDIT_ENABLED="true"
 export AUDIT_RISK_ZERO_POSTS="true"
 export AUDIT_RISK_ZERO_FOLLOWERS="true"
 export AUDIT_RISK_HIGH_FOLLOWING_RATIO="true"
-export AUDIT_FOLLOWING_RATIO_THRESHOLD="100"
-export AUDIT_MIN_FOLLOWERS_FOR_RATIO="10"
-export AUDIT_ALERT_THRESHOLD_RISKY="5"
+export EXPECTED_PRIVACY="private"</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr><th>Variable</th><th>Description</th><th>Default/Example</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>IG_USERNAME</code></td><td>Your Instagram username (handle)</td><td>Required</td></tr>
+                        <tr><td><code>IG_PASSWORD</code></td><td>Instagram password (use app-specific password)</td><td>Required</td></tr>
+                        <tr><td><code>ALERT_EMAIL</code></td><td>Email address to send alerts to</td><td>Required</td></tr>
+                        <tr><td><code>ALERT_APP_PASSWORD</code></td><td>SMTP password (App Password)</td><td>Required</td></tr>
+                        <tr><td><code>SMTP_SERVER</code></td><td>SMTP server</td><td>smtp.gmail.com</td></tr>
+                        <tr><td><code>SMTP_PORT</code></td><td>SMTP port</td><td>465</td></tr>
+                        <tr><td><code>ENABLE_CONTENT_SCANNING</code></td><td>Scan posts/DMs for threats</td><td>false</td></tr>
+                        <tr><td><code>ENABLE_PHISHING_DETECTION</code></td><td>Detect phishing links/pages</td><td>false</td></tr>
+                        <tr><td><code>ENABLE_PII_DETECTION</code></td><td>Detect PII in posts/DMs</td><td>false</td></tr>
+                        <tr><td><code>CONTENT_SCAN_KEYWORDS</code></td><td>Custom scan keywords (comma-separated)</td><td>—</td></tr>
+                        <tr><td><code>AUDIT_ENABLED</code></td><td>Enable privacy/security audit</td><td>true</td></tr>
+                        <tr><td><code>EXPECTED_PRIVACY</code></td><td>Expected account privacy</td><td>private</td></tr>
+                        <tr><td><code>STATE_FILE</code></td><td>File to store previous state</td><td>{platform}_state.json</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-# OSINT & PII scanning (optional)
-export ENABLE_CONTENT_SCANNING="false"
-export ENABLE_PII_DETECTION="false"
-# Add custom keywords for content scanning (comma-separated):
-# CONTENT_SCAN_KEYWORDS="free nft,click here for,urgent action required,mr beast,crypto giveaway"
-# Add custom PII patterns (regex format):
-# PII_PATTERNS="\\\\b\\\\d{3}-?\\\\d{2}-?\\\\d{4}\\\\b, \\\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\\\.[A-Z|a-z]{2,}\\\\b"</code></pre>
-            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <section id="how-it-works">
+            <div class="wrap">
+                <h2><span style="color:var(--accent); margin-right:8px;">⚙️</span>How It Works</h2>
+                <p class="section-lead">1. Authenticates to the platform using your credentials.<br>
+                2. Fetches your current followers/following and compares against the previous run.<br>
+                3. Checks account privacy settings and audits new connections for risk.<br>
+                4. Scans posts/DMs for phishing, scams, spam, and PII — rating each threat by severity.<br>
+                5. Sends an email alert when thresholds are exceeded or threats are detected.<br>
+                6. Updates the state file for the next check.</p>
+            </div>
+        </section>
+
+    <footer>
+        <div class="wrap">
+            <div>© <span id="year"></span> pymite6941 — social-safe. MIT License.</div>
+            <div>
+                <a href="https://github.com/PyMite6941/social-safe" target="_blank">GitHub</a>
+                <a href="#installation">Install</a>
+                <a href="#threats">Threat Detection</a>
+            </div>
         </div>
-        <div class="env-vars">
-            <h3>Environment Variables Reference</h3>
-            <table class="env-table">
-                <thead>
-                    <tr>
-                        <th>Variable</th>
-                        <th>Description</th>
-                        <th>Default/Example</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>IG_USERNAME</code></td>
-                        <td>Your Instagram username (handle)</td>
-                        <td>Required</td>
-                    </tr>
-                    <tr>
-                        <td><code>IG_PASSWORD</code></td>
-                        <td>Instagram password (use app-specific password)</td>
-                        <td>Required</td>
-                    </tr>
-                    <tr>
-                        <td><code>TWITTER_USERNAME</code></td>
-                        <td>Your Twitter/X username (handle)</td>
-                        <td>Required for Twitter monitoring</td>
-                    </tr>
-                    <tr>
-                        <td><code>TWITTER_BEARER_TOKEN</code></td>
-                        <td>Twitter/X Bearer Token (v2 API)</td>
-                        <td>Alternative to OAuth 1.0a</td>
-                    </tr>
-                    <tr>
-                        <td><code>TWITTER_API_KEY</code></td>
-                        <td>Twitter/X API Key (v1.1 API)</td>
-                        <td>Alternative to Bearer Token</td>
-                    </tr>
-                    <tr>
-                        <td><code>TWITTER_API_SECRET</code></td>
-                        <td>Twitter/X API Secret (v1.1 API)</td>
-                        <td>Required for OAuth 1.0a</td>
-                    </tr>
-                    <tr>
-                        <td><code>TWITTER_ACCESS_TOKEN</code></td>
-                        <td>Twitter/X Access Token (v1.1 API)</td>
-                        <td>Required for OAuth 1.0a</td>
-                    </tr>
-                    <tr>
-                        <td><code>TWITTER_ACCESS_TOKEN_SECRET</code></td>
-                        <td>Twitter/X Access Token Secret (v1.1 API)</td>
-                        <td>Required for OAuth 1.0a</td>
-                    </tr>
-                    <tr>
-                        <td><code>LINKEDIN_USERNAME</code></td>
-                        <td>Your LinkedIn username or email</td>
-                        <td>Required for LinkedIn monitoring</td>
-                    </tr>
-                    <tr>
-                        <td><code>LINKEDIN_PASSWORD</code></td>
-                        <td>LinkedIn password (use app-specific password where possible)</td>
-                        <td>Optional for public data viewing</td>
-                    </tr>
-                    <tr>
-                        <td><code>ALERT_EMAIL</code></td>
-                        <td>Email address to send alerts to</td>
-                        <td>Required</td>
-                    </tr>
-                    <tr>
-                        <td><code>ALERT_APP_PASSWORD</code></td>
-                        <td>SMTP password for sending alerts (App Password)</td>
-                        <td>Required</td>
-                    </tr>
-                    <tr>
-                        <td><code>SMTP_SERVER</code></td>
-                        <td>SMTP server</td>
-                        <td>smtp.gmail.com</td>
-                    </tr>
-                    <tr>
-                        <td><code>SMTP_PORT</code></td>
-                        <td>SMTP port</td>
-                        <td>465</td>
-                    </tr>
-                    <tr>
-                        <td><code>MONITOR_FOLLOWERS</code></td>
-                        <td>Monitor followers/connections? ('true' or 'false')</td>
-                        <td>true</td>
-                    </tr>
-                    <tr>
-                        <td><code>MONITOR_FOLLOWING</code></td>
-                        <td>Monitor following? ('true' or 'false')</td>
-                        <td>true</td>
-                    </tr>
-                    <tr>
-                        <td><code>ALERT_THRESHOLD_NEW_FOLLOWERS</code></td>
-                        <td>Alert if new followers exceed this number</td>
-                        <td>10</td>
-                    </tr>
-                    <tr>
-                        <td><code>ALERT_THRESHOLD_LOST_FOLLOWERS</code></td>
-                        <td>Alert if lost followers exceed this number</td>
-                        <td>10</td>
-                    </tr>
-                    <tr>
-                        <td><code>ALERT_THRESHOLD_NEW_FOLLOWING</code></td>
-                        <td>Alert if new follows exceed this number</td>
-                        <td>10</td>
-                    </tr>
-                    <tr>
-                        <td><code>ALERT_THRESHOLD_LOST_FOLLOWING</code></td>
-                        <td>Alert if lost follows exceed this number</td>
-                        <td>10</td>
-                    </tr>
-                    <tr>
-                        <td><code>EXPECTED_PRIVACY</code></td>
-                        <td>Expected account privacy ('private'/'public' or 'protected'/'unprotected')</td>
-                        <td>private</td>
-                    </tr>
-                    <tr>
-                        <td><code>STATE_FILE</code></td>
-                        <td>File to store previous state (per platform)</td>
-                        <td>{platform}_state.json</td>
-                    </tr>
-                    <tr>
-                        <td><code>AUDIT_ENABLED</code></td>
-                        <td>Enable privacy/security audit (true/false)</td>
-                        <td>true</td>
-                    </tr>
-                    <tr>
-                        <td><code>AUDIT_RISK_ZERO_POSTS</code></td>
-                        <td>Flag new connections with zero posts</td>
-                        <td>true</td>
-                    </tr>
-                    <tr>
-                        <td><code>AUDIT_RISK_ZERO_FOLLOWERS</code></td>
-                        <td>Flag new connections with zero followers</td
+    </footer>
+
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+        function copyCode(btn) {
+            const pre = btn.closest('.code-wrapper').querySelector('pre');
+            const text = pre ? pre.innerText : '';
+            navigator.clipboard.writeText(text).then(() => {
+                const old = btn.innerText;
+                btn.innerText = 'Copied!';
+                setTimeout(() => btn.innerText = old, 1500);
+            });
+        }
+    </script>
+</body>
+</html>

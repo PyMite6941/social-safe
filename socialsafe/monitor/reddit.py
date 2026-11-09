@@ -1,6 +1,9 @@
 """Reddit monitor adapter for social-safe"""
 
+
+from __future__ import annotations
 import praw
+import json
 import os
 from typing import Set, Dict, Optional, List
 from pathlib import Path
@@ -380,9 +383,11 @@ class RedditMonitor(BaseSocialMonitor):
                 pii_matches = self.scan_for_pii(text)
                 # For simplicity, we'll just note that PII was found; we could aggregate by type
                 if any(pii_matches.values()):
-                    all_text_threats.append("pii_detected")
-        
+                    all_text_threats.append({"category": "pii", "pattern": "pii_detected", "severity": "high"})
+
+        # Deduplicate (threats are dicts, which aren't hashable)
+        unique_text_threats = list({json.dumps(t, sort_keys=True): t for t in all_text_threats}.values())
         return {
-            "text_threats": list(set(all_text_threats)),  # deduplicate
+            "text_threats": unique_text_threats,
             "image_threats": list(set(all_image_threats))
         }

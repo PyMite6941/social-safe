@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="socialsafe",
-    version="0.1.0",
+    version="0.2.0",
     author="pymite6941",
     author_email="you@example.com",
     description="Social media privacy protection and monitoring tools",
@@ -21,19 +21,26 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: MacOS",
+        "Operating System :: POSIX :: Linux",
+        "Topic :: Security",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.10",
     install_requires=[
         "instaloader>=4.8.0",
         "tweepy>=4.14.0",
         "praw>=7.7.0",
         "playwright>=1.64.0",
+        "python-dotenv>=1.0.0",
     ],
     entry_points={
         "console_scripts": [
+            "socialsafe=socialsafe.cli:main",
             "socialsafe-monitor=socialsafe.monitor:monitor_instagram",
         ],
     },

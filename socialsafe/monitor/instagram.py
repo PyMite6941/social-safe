@@ -1,5 +1,7 @@
 """Instagram monitoring module for social-safe"""
 
+
+from __future__ import annotations
 import instaloader
 import os
 from typing import Set, Dict, Optional, List
