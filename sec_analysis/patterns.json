@@ -1,0 +1,29 @@
+{
+  "crypto_scam": [
+    "(?i)\\$[A-Z]{2,10}",
+    "(?i)(giveaway|airdrop|free\\s*tokens?|claim\\s*now)",
+    "(?i)(solana|eth|btc|usdt|bnb)\\s*(giveaway|airdrop)",
+    "(?i)(link\\s*in\\s*bio|dm\\s*for\\s*details)",
+    "(?i)(verify\\s*your\\s*account|confirm\\s*identity)"
+  ],
+  "phishing": [
+    "(?i)login\\s*[:\\-]\\s*https?://[^\\s]+",
+    "(?i)verify\\s*your\\s*account\\s*[:\\-]\\s*https?://[^\\s]+",
+    "(?i)secure\\s*your\\s*account\\s*[:\\-]\\s*https?://[^\\s]+",
+    "(?i)click\\s*here\\s*to\\s*[^\\s]*",
+    "(?i)account\\s*suspended\\s*[:\\-]\\s*https?://[^\\s]+"
+  ],
+  "suspicious_urls": [
+    "bit\\.ly/[A-Za-z0-9]+",
+    "t\\.co/[A-Za-z0-9]+",
+    "tinyurl\\.com/[A-Za-z0-9]+",
+    "[a-zA-Z0-9\\-]+\\.(xyz|top|club|work|info)\\/[^\\s]+"
+  ],
+  "account_takeover_indicators": [
+    "(?i)new\\s*email\\s*added",
+    "(?i)password\\s*changed",
+    "(?i)login\\s*from\\s*new\\s*device",
+    "(?i)session\\s*invalidated",
+    "(?i)unrecognized\\s*location"
+  ]
+}
