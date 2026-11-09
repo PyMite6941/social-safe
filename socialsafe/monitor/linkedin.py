@@ -1,5 +1,7 @@
 """LinkedIn monitor adapter for social-safe using Playwright."""
 
+
+from __future__ import annotations
 import asyncio
 import os
 from typing import Set, Dict, Optional, List
@@ -30,6 +32,10 @@ class LinkedInMonitor(BasePlaywrightMonitor):
         if expected_privacy not in ['public', 'private']:
             raise ValueError("LINKEDIN_EXPECTED_PRIVACY must be either 'public' or 'private'")
         return expected_privacy
+
+    def _initialize_platform_specific(self):
+        """No LinkedIn-specific setup is needed before the browser starts."""
+        pass
 
     async def _login_async(self, password: Optional[str] = None) -> bool:
         """Login to LinkedIn using Playwright."""

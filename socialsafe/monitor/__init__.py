@@ -6,19 +6,24 @@ from .instagram import InstagramMonitor
 from .twitter import TwitterMonitor
 from .reddit import RedditMonitor
 from .linkedin import LinkedInMonitor
+from .facebook import FacebookMonitor
+from .tiktok import TikTokMonitor
+from .youtube import YouTubeMonitor
+from .discord import DiscordMonitor
 from .playwright_base import BasePlaywrightMonitor
 
 # Factory function to get monitor instance by platform name
 def get_monitor(platform: str, **kwargs) -> BaseSocialMonitor:
     """Get a monitor instance for the specified platform.
-    
+
     Args:
-        platform: Platform name ('instagram', 'twitter', 'reddit', 'linkedin', etc.)
+        platform: Platform name ('instagram', 'twitter', 'reddit', 'linkedin',
+                  'facebook', 'tiktok', 'youtube', 'discord', etc.)
         **kwargs: Arguments to pass to the monitor constructor
-        
+
     Returns:
         BaseSocialMonitor instance for the specified platform
-        
+
     Raises:
         ValueError: If platform is not supported
     """
@@ -27,7 +32,10 @@ def get_monitor(platform: str, **kwargs) -> BaseSocialMonitor:
         'twitter': TwitterMonitor,
         'reddit': RedditMonitor,
         'linkedin': LinkedInMonitor,
-        # Add more platforms here as they are implemented
+        'facebook': FacebookMonitor,
+        'tiktok': TikTokMonitor,
+        'youtube': YouTubeMonitor,
+        'discord': DiscordMonitor,
     }
     
     monitor_class = monitors.get(platform.lower())
@@ -67,6 +75,10 @@ __all__ = [
     'TwitterMonitor',
     'RedditMonitor',
     'LinkedInMonitor',
+    'FacebookMonitor',
+    'TikTokMonitor',
+    'YouTubeMonitor',
+    'DiscordMonitor',
     'get_monitor',
     'monitor_instagram'
 ]

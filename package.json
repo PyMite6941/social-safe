@@ -1,29 +1,47 @@
 {
-  "name": "socialsafe-wrapper",
-  "version": "0.1.0",
-  "description": "Node.js wrapper for social-safe Python package - Instagram privacy monitoring",
+  "name": "@pymite6941/socialsafe",
+  "version": "0.2.0",
+  "description": "Social media account protection: scam/phishing scanning, account hardening guides, and follower/privacy monitoring (Node launcher for the social-safe Python package)",
   "main": "cli.js",
   "bin": {
-    "socialsafe": "./cli.js"
+    "socialsafe": "cli.js"
+  },
+  "files": [
+    "cli.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
   },
   "scripts": {
-    "test": "node -e \"const fs = require('fs'); const path = require('path'); const cliPath = path.resolve(__dirname, 'cli.js'); if (fs.existsSync(cliPath)) { console.log('✅ CLI file exists'); process.exit(0); } else { console.log('❌ CLI file missing'); process.exit(1); }\"",
-    "lint": "echo \"No linting configured yet\" && exit 0"
+    "test": "node --check cli.js && node -e \"require('fs').accessSync(require('path').join(__dirname, 'cli.js')); console.log('cli.js OK')\"",
+    "lint": "node --check cli.js"
   },
   "keywords": [
-    "instagram",
+    "social-media",
+    "security",
     "privacy",
-    "monitoring",
-    "social-media"
+    "phishing",
+    "scam-detection",
+    "account-takeover",
+    "2fa",
+    "instagram",
+    "tiktok",
+    "discord",
+    "facebook",
+    "youtube"
   ],
   "author": "pymite6941",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pymite6941/social-safe.git"
+    "url": "git+https://github.com/PyMite6941/social-safe.git"
   },
-  "homepage": "https://github.com/pymite6941/social-safe#readme",
-  "dependencies": {
-    "which": "^2.0.2"
+  "homepage": "https://github.com/PyMite6941/social-safe#readme",
+  "bugs": {
+    "url": "https://github.com/PyMite6941/social-safe/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

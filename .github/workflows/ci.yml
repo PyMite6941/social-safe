@@ -7,42 +7,84 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test:
+    name: ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        python-version: [ "3.9", "3.10", "3.11" ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        python-version: [ "3.10", "3.13" ]
+        include:
+          - os: ubuntu-latest
+            python-version: "3.11"
+          - os: ubuntu-latest
+            python-version: "3.12"
+    defaults:
+      run:
+        shell: bash
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+    - uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Create virtual environment
-      run: python -m venv venv
+    - uses: actions/setup-node@v5
+      with:
+        node-version: '20'
 
-    - name: Install dependencies
+    - name: Install package
       run: |
-        source venv/bin/activate
-        pip install --upgrade pip
-        pip install -e .
+        python -m pip install --upgrade pip
+        python -m pip install -e .
 
-    - name: Test import
+    - name: Import every monitor
+      run: python -c "from socialsafe.monitor import InstagramMonitor, TwitterMonitor, RedditMonitor, LinkedInMonitor, FacebookMonitor, TikTokMonitor, YouTubeMonitor, DiscordMonitor, monitor_instagram; print('imports OK')"
+
+    - name: Instantiate monitors and run scanners
       run: |
-        source venv/bin/activate
-        python -c "from socialsafe.monitor import InstagramMonitor; print('✅ InstagramMonitor import successful')"
-        python -c "from socialsafe.monitor import monitor_instagram; print('✅ monitor_instagram import successful')"
+        python - <<'PY'
+        from socialsafe.monitor import get_monitor
+        for p in ["instagram", "linkedin", "facebook", "tiktok", "youtube", "discord"]:
+            m = get_monitor(p, username="ci-user", enable_content_scanning=True, enable_phishing_detection=True)
+            assert m.audit_account_security()["checks"], p
+            assert m.get_security_hardening_guide()["steps"], p
+        assert not m.scan_content("see you at lunch tomorrow")["text_threats"]
+        assert m.scan_content("URGENT: verify your account at bit.ly/x")["text_threats"]
+        print("monitors instantiate and scanners behave")
+        PY
+
+    - name: Python CLI (console script and python -m)
+      run: |
+        socialsafe platforms
+        socialsafe threats
+        socialsafe guide discord
+        socialsafe guide mastodon
+        socialsafe scan "see you at lunch tomorrow" --fail-on low
+        if socialsafe scan "Press Win+R and paste this to verify you are human" --fail-on high; then
+          echo "expected ClickFix lure to be flagged"; exit 1
+        fi
+        python -m socialsafe check-url https://instagram.com/accounts
+        echo "Agent from the FBI IC3 can recover your lost funds for a processing fee" | python -m socialsafe scan --json > scan.json
+        python -c "import json; r=json.load(open('scan.json')); assert r['overall_severity']=='critical', r['overall_severity']"
+
+    - name: Node launcher
+      run: |
+        npm test
+        node cli.js scan "free discord nitro gift, claim here"
+        node cli.js guide tiktok
 
     - name: Build package
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
       run: |
-        source venv/bin/activate
-        python setup.py sdist bdist_wheel
+        python -m pip install build
+        python -m build
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+      uses: actions/upload-artifact@v5
       with:
-        name: dist-files-${{ matrix.python-version }}
+        name: dist
         path: dist/
