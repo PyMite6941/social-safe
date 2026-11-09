@@ -4,6 +4,7 @@
 'use strict';
 
 const { spawnSync, spawn } = require('child_process');
+const os = require('os');
 
 const args = process.argv.slice(2);
 
@@ -11,7 +12,7 @@ function candidates() {
   const list = [];
   if (process.env.SOCIALSAFE_PYTHON) list.push([process.env.SOCIALSAFE_PYTHON]);
   if (process.platform === 'win32') {
-    list.push(['py', '-3'], ['python'], ['python3']);
+    list.push(['python'], ['py', '-3'], ['python3']);
   } else {
     list.push(['python3'], ['python']);
   }
@@ -21,7 +22,11 @@ function candidates() {
 function findPython() {
   let anyPython = null;
   for (const [cmd, ...pre] of candidates()) {
-    const probe = spawnSync(cmd, [...pre, '-c', 'import socialsafe'], { stdio: 'ignore', windowsHide: true });
+    // Probe from a temp dir so a source checkout in the cwd can't mask a missing install,
+    // and import the CLI so missing dependencies are caught too.
+    const probe = spawnSync(cmd, [...pre, '-c', 'import socialsafe.cli'], {
+      stdio: 'ignore', windowsHide: true, cwd: os.tmpdir(),
+    });
     if (probe.error) continue;            // interpreter not found
     anyPython = anyPython || [cmd, ...pre];
     if (probe.status === 0) return { python: [cmd, ...pre], installed: true };
